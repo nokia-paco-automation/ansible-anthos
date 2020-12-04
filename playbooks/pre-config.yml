@@ -1,0 +1,16 @@
+---
+    - hosts: localhost
+      connection: localhost
+      pre_tasks:
+        - name: Check for Ansible version 2.2 (minimum)
+          assert:
+            that: "ansible_version.major == 2 and ansible_version.minor >= 2"
+            msg:  "Only Ansible version 2.2 or greater is supported by Fabric-Builder, you are using {{ansible_version.full}}"
+        - name: Set bmtl variable
+          set_fact:
+            bmtl_vars: "{{ bmtl_vars_file | default ('../bmtl.yaml') }}"
+        - name: Include bmtl variable files
+          include_vars: "{{ bmtl_vars }}"
+
+      roles:
+        - { role: svc-accounts, tags: svc-accounts}
