@@ -1,0 +1,21 @@
+---
+  - name: create namespace {{sw}}
+    shell: kubectl create ns {{sw}}
+    register: response
+    failed_when:
+      - response.rc > 1
+      - response.rc == 1 and "already exists" not in result.stderr
+
+  - name: create secret {{sw}}
+    shell: kubectl create -n {{sw}} secret docker-registry {{harbor.name}} --docker-server={{harbor.server}} --docker-username='{{harbor.username}}' --docker-password={{harbor.secret}}  --docker-email={{harbor.email}}
+    register: response
+    failed_when:
+      - response.rc > 1
+      - response.rc == 1 and "already exists" not in result.stderr
+  
+  - name: Patch ServiceAccount {{sw}}
+    shell: "kubectl patch serviceaccount default -n {{sw}} -p '{{ patch | to_json }}'"
+    vars:
+      patch:
+        imagePullSecrets:
+          - name: "{{ harbor.name }}"

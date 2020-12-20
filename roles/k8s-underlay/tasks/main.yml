@@ -1,0 +1,10 @@
+---
+    - name: install kubernetes on centos
+      include_tasks: centos.yml
+      when: linux_os == "centos"
+    
+    - name: install kubernetes on ubuntu
+      include_tasks: ubuntu.yml
+      when: linux_os == "ubuntu"
+
+    #systemctl daemon-reload && systemctl restart kubelet

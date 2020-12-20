@@ -1,0 +1,208 @@
+---
+tags:
+  all: true
+  amms: true
+  dbs: true
+  emms: false
+  ipds: true
+  ipps: false
+  necc: true
+  paps: false
+  networkcrd: true
+  pvc: true
+global:
+  env_name: amf
+  k8s_apiserver_endpoints:
+    - 10.96.0.1
+  k8s_apiserver_port: 443
+  env_separator: '-'
+  ne_type: amf
+  cmm_uuid: ef4c4186-275b-40ee-afb9-6aeaf317b042
+  necccount: 2
+  storageclass: nfs-csi 
+  timezone: Europe/Brussels
+  stdout_logging: true
+  aws_ip_mgmt: false
+  aws_ip_mgmt_image: harbor.nokia.cloudpj.be/paco/aws_ip_mgmt:2.3
+  disable_hpa: false
+  disable_apparmor: true
+  rbac_resourcename:
+  openshift: false
+  cbam: false
+  bcmt: false
+  multi_container: false
+  cluster_cidr: []
+  scale:
+    amms:
+      minReplicas: 2
+      maxReplicas: 3
+      cpu_utilization: 80
+      memory_utilization: 91
+    emms:
+      minReplicas: 0
+      maxReplicas: 0
+      cpu_utilization: 80
+      memory_utilization: 91
+    dbs:
+      minReplicas: 2
+      maxReplicas: 3
+      cpu_utilization: 80
+      memory_utilization: 91
+    ipds:
+      minReplicas: 2
+      maxReplicas: 2
+      cpu_utilization: 80
+    ipps:
+      minReplicas: 0
+      maxReplicas: 0
+      cpu_utilization: 81
+    paps:
+      minReplicas: 0
+      maxReplicas: 0
+      cpu_utilization: 82
+  kubeDNS:
+    ip: 10.96.0.10
+  prometheus:
+    namespaceLabel:
+      permission: talk-to-all
+    podLabel:
+      app: Prometheus
+  sbi_net_container_native: false
+  sbi_net_container_lb: istio
+  pvc_hostpath_prefix:
+  skipNeccPvcCleanupJob: true
+  seLinuxOptions:
+    user: false
+    role: false
+    type: false
+    level: false
+  dbs_duplex:  false
+  neccvolumes:
+    pcmd_pvc: 1Gi
+    perf_pvc: 1Gi
+    logs_pvc: 1Gi
+    kafka_pvc: 1Gi
+    influx_pvc: 1Gi
+    redis_pvc: 1Gi
+    charging_pvc: 1Gi
+    pm_pvc: 1Gi
+    shared_pvc: 1Gi
+    store_pvc: 5Gi
+    mariadb_pvc: 5Gi
+  oam:
+    type: "ipv4"
+    ipv4:
+      ip:
+        - 10.1.10.151
+        - 10.1.10.152
+        - 10.1.10.153
+        - 10.1.10.154
+      floating_ip: 10.1.10.200
+      cidr: 10.1.10.0/24
+      gw: 10.1.10..1 
+    interface: eth2
+    host_interface: bond0.100
+  external_cni: ipvlan
+  external:
+    ipds:
+    - name: 3GPP_External
+      type: ipv4
+      host_interface: bond0.102
+      interface: eth3
+      ipv4:
+        cidr: 10.1.12.0/24
+        gw: 10.1.12.1
+        ip:
+          - 10.1.12.151
+          - 10.1.12.152
+          - 10.1.12.152
+          - 10.1.12.153
+    - name: 3GPP_SBA
+      type: ipv4
+      host_interface: bond0.103
+      interface: eth4
+      ipv4:
+        cidr: 10.1.13.0/24
+        gw: 10.1.13.1
+        ip:
+          - 10.1.13.151
+          - 10.1.13.152
+          - 10.1.13.153
+          - 10.1.13.154
+  secrets:
+    users:
+      cmm_passwd: Nuage_7890
+      cbamuser_passwd:
+      sam5620_passwd:
+      cgw_passwd:
+      dcae_dfc_passwd:
+      rsp_passwd:
+      diagnostic_passwd:
+      trainee_passwd:
+      ca4mn_passwd:
+      cmmsecurity_passwd:
+      root_passwd:
+  containers:
+    dbs:
+      imageName: harbor.nokia.cloudpj.be/paco/dbs:CMM21.0.0
+      resources:
+        cpu: 4
+        memory: 8Gi
+      nodeSelector: {}
+      antiaffinity: 
+        - dbs
+      initialDelaySeconds: 15
+      periodSeconds: 20
+    emms_amms:
+      imageName: harbor.nokia.cloudpj.be/paco/cpps:CMM21.0.0
+      resources:
+        cpu: 4
+        memory: 16Gi
+      nodeSelector: {}
+      antiaffinity:
+        - amms
+      initialDelaySeconds: 5
+      periodSeconds: 20
+    ipds:
+      imageName: harbor.nokia.cloudpj.be/paco/ipds:CMM21.0.0
+      resources:
+        cpu: 6
+        memory: 12Gi
+      nodeSelector: {}
+      antiaffinity:
+        - ipds
+      initialDelaySeconds: 30
+      periodSeconds: 20
+    ipps:
+      imageName: harbor.nokia.cloudpj.be/paco/ipps:CMM21.0.0
+      resources:
+        cpu: 8
+        memory: 12Gi
+      nodeSelector: {}
+      antiaffinity: []
+      initialDelaySeconds: 30
+      periodSeconds: 20
+    necc:
+      imageName: harbor.nokia.cloudpj.be/paco/necc:CMM21.0.0
+      resources:
+        cpu: 4
+        memory: 12Gi
+      nodeSelector: {}
+      pvc: true
+      antiaffinity:
+        - necc
+      initialDelaySeconds: 120
+      periodSeconds: 20
+    paps:
+      imageName: harbor.nokia.cloudpj.be/paco/paps:CMM21.0.0
+      resources:
+        cpu: 4
+        memory: 12Gi
+      nodeSelector: {}
+      antiaffinity: []
+      initialDelaySeconds: 30
+      periodSeconds: 20
+cmm-config-map:
+  security_level: 3
+  ipds_env_multi: false
+  cmm_env_l3ns: false

@@ -1,0 +1,226 @@
+service:
+  loam:
+    telnet:
+      nodePort: 31023
+      port: 2323
+      targetPort: 2323
+    ssh:
+      nodePort: 31221
+      port: 2222
+      targetPort: 2222
+    snmp1:
+      nodePort: 31164
+      port: 164
+      targetPort: 164
+  loamA:
+    console:
+      nodePort: 31000
+      port: 2000
+      targetPort: 2000
+  loamB:
+    console:
+      nodePort: 31000
+      port: 2000
+      targetPort: 2000
+  lmg:
+    console:
+      nodePort: 31000
+      port: 2000
+      targetPort: 2000
+  llb:
+    console:
+      nodePort: 31000
+      port: 2000
+      targetPort: 2000
+image:
+  repository: {{harbor.server}}/{{harbor.image_dir}}
+  name: lmg
+  tag: {{paco_sw.smf.lmg.tag}}
+  pullPolicy: IfNotPresent
+  imagePullSecret: {{harbor.name}}
+nasc:
+  enable: {{paco_sw.smf.nasc.enable}}
+  imageRepository: {{harbor.server}}/{{harbor.image_dir}}
+  imageName: nasc
+  imageTag: {{paco_sw.smf.nasc.tag}}
+  imagePullPolicy: IfNotPresent
+logging:
+  enable: {{paco_sw.smf.logging.enable}}
+  imageRepository: {{harbor.server}}/{{harbor.image_dir}}
+  imageName: lmg
+  imageTag: {{paco_sw.smf.logging.tag}}
+  imagePullPolicy: IfNotPresent
+awsSideCar:
+  enable: {{paco_sw.smf.awsSideCar.enable}}
+  imageRepository: {{harbor.server}}/{{harbor.image_dir}}
+  imageName: aws_sidecar_lmg
+  imageTag: {{paco_sw.smf.awsSideCar.tag}}
+  imagePullPolicy: IfNotPresent
+multus:
+  lmg:
+    numDevices: 4
+    netNames:
+    - hostdevice-net-tor1-int
+    - hostdevice-net-tor1-sba
+    - hostdevice-net-tor2-int
+    - hostdevice-net-tor2-sba
+  llb:
+    numDevices: 0
+    netNames:
+  resourceName: intel.com/intel_sriov_netdevice
+  attachDef:
+  - name: hostdevice-net-tor1-int
+    cniVersion: 0.3.1
+    vlan: {{ paco_sw.smf.network.vlan[0]}}
+    resourceName: gke/sriov_iavf_1
+    type: {{ paco_sw.smf.network.type}}
+  - name: hostdevice-net-tor1-sba
+    cniVersion: 0.3.1
+    vlan: {{ paco_sw.smf.network.vlan[1]}}
+    resourceName: gke/sriov_iavf_1
+    type: {{ paco_sw.smf.network.type}}
+  - name: hostdevice-net-tor2-int
+    cniVersion: 0.3.1
+    vlan: {{ paco_sw.smf.network.vlan[0]}}
+    resourceName: gke/sriov_iavf_2
+    type: {{ paco_sw.smf.network.type}}
+  - name: hostdevice-net-tor2-sba
+    cniVersion: 0.3.1
+    vlan: {{ paco_sw.smf.network.vlan[1]}}
+    resourceName: gke/sriov_iavf_2
+    type: {{ paco_sw.smf.network.type}}
+  groFlag: 1
+  dsfEnable: 0
+gwConfig: smf
+gwRedundancy:
+  active: 1
+lmgScale:
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 90
+llbScale:
+  minReplicas: 0
+  maxReplicas: 0
+  targetCPUUtilizationPercentage: 90
+resources:
+  loam:
+    cpu: 4
+    memory: 4Gi
+    nodeSelector: {}
+  lmg:
+    cpu: 6
+    memory: 16Gi
+    multus:
+    - resourceName: gke/sriov_iavf_1
+      numDevices: 2
+    - resourceName: gke/sriov_iavf_2
+      numDevices: 2
+    nodeSelector: {}
+  llb:
+    cpu: 6
+    memory: 16Gi
+    multus:
+    - resourceName: gke/sriov_iavf_1
+      numDevices: 0
+    - resourceName: gke/sriov_iavf_2
+      numDevices: 0
+  nasc:
+    cpu: 100m
+    memory: 100Mi
+  logging:
+    cpu: 100m
+    memory: 100Mi
+  awsSideCar:
+    cpu: 100m
+    memory: 100Mi
+storage:
+#pvCreation to be set to 0 in case Persistent Volume already created
+  pvCreation: 1
+  parentPath: /mnt/glusterfs/
+  pvLogsName: logs-volume-smf
+  pvStorageClass: manual
+  pvLogsClaimName: logs-volume-claim
+  pvSize: 1Gi
+  cfSize: 1Gi
+  cfAInfo:
+  - pvName: smf-cf1-a-volume
+    pvcName: cf1-a-volume-claim
+  - pvName: smf-cf2-a-volume
+    pvcName: cf2-a-volume-claim
+  cfBInfo:
+  - pvName: smf-cf1-b-volume
+    pvcName: cf1-b-volume-claim
+  - pvName: smf-cf2-b-volume
+    pvcName: cf2-b-volume-claim
+rtScheduling:
+  enable: 0
+  cgroupHostPath: /sys/fs/cgroup/cpu,cpuacct/
+loamB:
+  enable: 0
+podsecuritypolicy:
+  create: false
+peers:
+#  nrf:
+#    ip: 10.200.197.200
+#    port: 8080
+#    uuid: abcdef00-b261-40a8-b605-6d301c3d0000
+#    interface: sigRefPointIf
+  upf:
+    peerList:
+    - ip: 10.1.21.70
+      apn:
+      - name: demo.nokia.mnc100.mcc234.gprs
+        uepool:
+          name: pool1
+          ipv4Prefix: 10.0.128.0/17
+    interface: sigRefPointIf
+  amf:
+     ip: 10.1.22.102
+     port: 8080
+     uuid: 20e0b0c3-82e1-44a4-82ab-a065d80a3b93 
+     interface: sigSba
+  udm:
+     ip: 172.16.10.2
+     port: 8081
+     uuid: f4a4a1e4-a134-4967-a55f-6db4fb8d2e0b
+     interface: sigSba
+slice:
+- sst: 1
+  sd: abcdef
+plmn:
+- mcc: "234"
+  mnc: "100"
+uuid: 842887ce-329d-4add-9a1c-e7dd03faa00e
+network:
+  interface:
+  - name: sigRefPointIf
+    ip: 10.1.21.60
+    subnet: 24
+    port: 1/2/1
+    bfd: false
+  - name: sigSba
+    ip: 10.1.23.60
+    subnet: 24
+    port: 1/2/2
+    bfd: false
+  - name: system
+    ip: 10.20.30.60
+    subnet: 32
+    port: system
+    bfd: false
+  staticRoute:
+  - subnet: 0.0.0.0/0
+    nextHop:
+    - 10.1.23.1
+    bfd: false
+  bgp:
+apn:
+- name: demo.nokia.mnc100.mcc234.gprs
+  uepool:
+  - router: Base
+    name: pool1
+uepool:
+- router: Base
+  name: pool1
+  ipv4Prefix: 10.0.128.0/17
+cnfName: smf

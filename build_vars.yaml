@@ -1,0 +1,59 @@
+user: nokia
+bootstrap_os: ubuntu
+linux_os: ubuntu
+project_id: anthos-bm-296816
+cluster:
+  name: telco-paco-cluster
+storage:
+  nfs_server: 100.112.1.201
+  nfs_mount: /nfs
+network:
+
+harbor:
+  name: paco-harbor
+  url: https://harbor.nokia.cloudpj.be/chartrepo/paco
+  server: harbor.nokia.cloudpj.be
+  image_dir: paco
+  email: robot@harbor.nokia.cloudpj.be
+  username: robot$paco
+  secret: 
+paco_sw:
+  elements:
+  - smf
+  - amf
+  - upf
+  upf:
+    lmg:
+      tag: I3889B
+    nasc:
+      enable: 0
+      tag: test1
+    logging:
+      enable: 1
+      tag: I3889B
+    awsSideCar:
+      enable: 0
+      tag: B0-3852
+    network:
+      type: sriov
+      interfaces: [ens2f0, ens2f1]
+      vlan: [101, 102, 104]
+  smf:
+    lmg:
+      tag: I3889B
+    nasc:
+      enable: 0
+      tag: test1
+    logging:
+      enable: 1
+      tag: I3889B
+    awsSideCar:
+      enable: 0
+      tag: B0-3852
+    network:
+      type: sriov
+      interfaces: [ens2f0, ens2f1]
+      vlan: [101, 103]
+    
+    
+      

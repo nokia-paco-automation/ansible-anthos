@@ -1,0 +1,25 @@
+---
+    - name: install  packages
+      yum: 
+        name: "{{ item.pkgname }}"
+        state: "present"
+      with_items:
+        - { pkgname: "epel-release"  }
+        - { pkgname: "ntp" }
+        - { pkgname: "bridge-utils" }
+        - { pkgname: "python3"}
+        - { pkgname: "python34-setuptools"}
+        - { pkgname: "golang" }
+        - { pkgname: "git"}
+        - { pkgname: "ansible"}
+        - { pkgname: "sshpass"}
+        - { pkgname: "whois"}
+        - { pkgname: "java-11-openjdk"}
+        - { pkgname: "bind"}
+        - { pkgname: "bind-utils"}
+        - { pkgname: "perf"}
+    
+    - name: install pip
+      easy_install:
+        name: pip
+        state: latest

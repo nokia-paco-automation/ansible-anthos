@@ -1,0 +1,25 @@
+---
+  - name: create directory
+    file:
+      path: ./kube
+      state: directory
+      
+  - name: copy kubeconfig kubeconfig
+    copy:
+      src: "/home/nokia/baremetal/bmctl-workspace/{{cluster.name}}/{{cluster.name}}-kubeconfig"
+      dest: ./.kube/config
+      remote_src: yes
+
+  - name: adding path in ~/.bashrc for KUBECONFIG
+    lineinfile: 
+      path: ~/.bashrc 
+      line: "export KUBECONFIG=$HOME/.kube/config"
+
+  - name: add auto-completion to cloud_user bash shell
+    lineinfile:
+      path: ~/.bashrc 
+      line: "source <(kubectl completion bash)"
+  
+  - name: add auto-completion to root bash shell
+    become: true
+    shell: kubectl completion bash >/etc/bash_completion.d/kubectl

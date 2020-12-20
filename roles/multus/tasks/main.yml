@@ -1,0 +1,37 @@
+---    
+  - name: download multus git repo
+    git:
+      repo: "https://github.com/intel/multus-cni.git"
+      dest: multus-cni
+      
+  - name: install multus
+    shell: kubectl apply -f multus-cni/images/multus-daemonset.yml
+    register: response
+    failed_when: "response.rc != 0 and 'already exist' not in response.stderr"
+  
+  - name: Create sriov configmap file
+    template: 
+      src: "{{ item }}.j2"
+      dest: charts/{{ item }}
+      mode: 0644
+    with_items:
+      - sriov-configmap.yaml
+  
+  - name: Create SRIOV config map
+    shell: kubectl apply -f charts/sriov-configmap.yaml
+
+  - name: download multus sriov cni git repo
+    git:
+      repo: "https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin"
+      dest: sriov-network-device-plugin
+
+  - name: install sriov multus daemonset
+    shell: kubectl apply -f sriov-network-device-plugin/deployments/k8s-v1.16/sriovdp-daemonset.yaml
+    register: response
+    failed_when: "response.rc != 0 and 'already exist' not in response.stderr"
+
+  - name: debug output
+    debug:
+      msg: "{{ response }}"
+
+  

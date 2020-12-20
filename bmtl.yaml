@@ -1,4 +1,0 @@
-user: nokia
-project_id: anthos-bm-296816
-cluster:
-  - name: telco-paco-cluster

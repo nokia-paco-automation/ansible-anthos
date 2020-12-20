@@ -1,0 +1,12 @@
+---
+  - name: helm repo update
+    shell: helm repo update
+    
+  - name: deploy
+    shell: helm install upf paco-harbor/upf -n upf -f ~/charts/values_upf.yaml 
+
+  - name: deploy smf
+    shell: helm install smf paco-harbor/smf -n smf -f ~/charts/values_smf.yaml
+
+  - name: deploy amf
+    shell: helm install amf-cluster paco-harbor/CMM-k8s --version 21.0.0-v8.6.1 -f ~/charts/values_amf.yaml -n amf

@@ -6,11 +6,11 @@
           assert:
             that: "ansible_version.major == 2 and ansible_version.minor >= 2"
             msg:  "Only Ansible version 2.2 or greater is supported by Fabric-Builder, you are using {{ansible_version.full}}"
-        - name: Set bmtl variable
+        - name: Set build variable
           set_fact:
-            bmtl_vars: "{{ bmtl_vars_file | default ('../bmtl.yaml') }}"
+            bmtl_vars: "{{ build_vars_file | default ('../build_vars.yaml') }}"
         - name: Include bmtl variable files
-          include_vars: "{{ bmtl_vars }}"
+          include_vars: "{{ build_vars }}"
 
       roles:
         - { role: svc-accounts, tags: svc-accounts}

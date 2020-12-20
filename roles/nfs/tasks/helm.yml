@@ -1,0 +1,16 @@
+---
+    - name: "Create NFS client provisioner"
+      shell: helm install nfs-provisioner --set nfs.server={{ storage.nfs_server }} --set nfs.path={{ storage.nfs_mount }} stable/nfs-client-provisioner -n nfs --namespace kube-system
+      register: response
+      changed_when: 
+        - "'created' in response.stdout"
+      failed_when: 
+        - "response.rc != 0 and 'cannot re-use' not in response.stderr"
+      run_once: true
+
+
+# helm repo add csi-driver-nfs https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
+# helm install --name csi-driver-nfs csi-driver-nfs/csi-driver-nfs --namespace kube-system
+
+
+#helm install  csi-driver-nfs csi-driver-nfs/csi-driver-nfs -n kube-system

@@ -1,0 +1,5 @@
+---
+  - name: install k9s
+    snap:
+      name: k9s
+      classic: yes
