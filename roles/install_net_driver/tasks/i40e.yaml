@@ -1,0 +1,54 @@
+- name: Download intel drivers
+  get_url:
+    url: https://sourceforge.net/projects/e1000/files/i40e%20stable/2.11.29/i40e-2.11.29.tar.gz/download
+    dest: /tmp/i40e-2.11.29.tar.gz
+    timeout: 60
+  retries: 5
+  delay: 1
+  register: result
+  until: result is succeeded and  result.size > 10240
+
+- name: Unarchive
+  unarchive:
+    src: /tmp/i40e-2.11.29.tar.gz
+    dest: /tmp
+    remote_src: true
+    creates: /tmp/i40e-2.11.29
+
+- name: Build i40e default target
+  make:
+    chdir: /tmp/i40e-2.11.29/src
+
+- name: Run i40e 'install' target
+  make:
+    chdir: /tmp/i40e-2.11.29/src
+    target: install
+
+- name: Download intel VF drivers
+  get_url:
+    url: https://sourceforge.net/projects/e1000/files/iavf%20stable/3.9.5/iavf-3.9.5.tar.gz/download
+    dest: /tmp/iavf-3.9.5.tar.gz
+    timeout: 60
+  retries: 5
+  delay: 1
+  register: result
+  until: result is succeeded and  result.size > 10240
+
+- name: Unarchive
+  unarchive:
+    src: /tmp/iavf-3.9.5.tar.gz
+    dest: /tmp
+    remote_src: true
+    creates: /tmp/iavf-3.9.5
+
+- name: Build iavf default target
+  make:
+    chdir: /tmp/iavf-3.9.5/src
+
+- name: Run iavf 'install' target
+  make:
+    chdir: /tmp/iavf-3.9.5/src
+    target: install
+
+- name: Reboot
+  reboot: null

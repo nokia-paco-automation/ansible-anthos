@@ -1,0 +1,7 @@
+- name: Create test.yaml
+  template: 
+    src: "{{ item }}.j2"
+    dest: ../build/{{ item }}
+    mode: 0644
+  with_items:
+    - test.yaml

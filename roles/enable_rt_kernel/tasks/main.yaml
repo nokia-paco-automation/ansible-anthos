@@ -1,0 +1,47 @@
+- assert:
+    that:
+      - "ansible_distribution == 'Ubuntu' and ansible_distribution_version == '20.04'"
+    msg: Only support installing RT kernel patch on Ubuntu 20.04
+    quiet: true
+
+- name: Download kernel source
+  unarchive:
+    src: https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-5.4.28.tar.gz
+    dest: /opt
+    remote_src: true
+    creates: /opt/linux-5.4.28
+
+- name: Download RT feature patch
+  get_url:
+    url: https://mirrors.edge.kernel.org/pub/linux/kernel/projects/rt/5.4/older/patch-5.4.28-rt19.patch.gz
+    dest: /opt/
+
+- name: Apply the RT feature patch
+  shell: gzip -cd ../patch-5.4.28-rt19.patch.gz | patch -p1 --verbose
+  args:
+    chdir: /opt/linux-5.4.28
+
+- name: Copy over kernel config file
+  copy:
+    src: config
+    dest: /opt/linux-5.4.28/.config
+
+- name: Install kernel compilation packages
+  action: "{{ ansible_pkg_mgr }} name={{ kernel_pkg }} state=latest update_cache=true"
+
+- name: compile kernel
+  shell: "{{ item }}"
+  args:
+    chdir: /opt/linux-5.4.28
+  with_items:
+  - make -j20
+  - make INSTALL_MOD_STRIP=1 modules_install -j20
+  - make install -j20
+
+- name: Reboot
+  reboot: null
+
+- name: Add install flag
+  file:
+    path: "{{ kernel_flag }}"
+    state: touch

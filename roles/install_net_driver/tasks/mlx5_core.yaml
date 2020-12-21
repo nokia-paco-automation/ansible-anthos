@@ -1,0 +1,20 @@
+- assert:
+    that:
+      - "ansible_distribution == 'Ubuntu' and ansible_distribution_version == '20.04'"
+    msg: Only support enabling SRIOV for mlx NICs on Ubuntu 20.04
+    quiet: true
+
+- name: Download mlx drivers
+  unarchive:
+    src: http://www.mellanox.com/downloads/ofed/MLNX_EN-4.9-0.1.7.0/mlnx-en-4.9-0.1.7.0-ubuntu20.04-x86_64.tgz
+    dest: /tmp
+    remote_src: true
+    creates: /tmp/mlnx-en-4.9-0.1.7.0-ubuntu20.04-x86_64
+
+- name: Run mlnx driver installation
+  shell: ./install --without-fw-update --force --force-dkms
+  args:
+    chdir: /tmp/mlnx-en-4.9-0.1.7.0-ubuntu20.04-x86_64
+
+#- name: Reboot
+#  reboot: null

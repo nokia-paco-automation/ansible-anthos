@@ -7,7 +7,7 @@
       - response.rc == 1 and "already exists" not in result.stderr
 
   - name: create secret {{sw}}
-    shell: kubectl create -n {{sw}} secret docker-registry {{harbor.name}} --docker-server={{harbor.server}} --docker-username='{{harbor.username}}' --docker-password={{harbor.secret}}  --docker-email={{harbor.email}}
+    shell: kubectl create -n {{sw}} secret docker-registry {{paco_sw.harbor.name}} --docker-server={{paco_sw.harbor.server}} --docker-username='{{paco_sw.harbor.username}}' --docker-password={{paco_sw.harbor.secret}}  --docker-email={{paco_sw.harbor.email}}
     register: response
     failed_when:
       - response.rc > 1
@@ -18,4 +18,4 @@
     vars:
       patch:
         imagePullSecrets:
-          - name: "{{ harbor.name }}"
+          - name: "{{ paco_sw.harbor.name }}"

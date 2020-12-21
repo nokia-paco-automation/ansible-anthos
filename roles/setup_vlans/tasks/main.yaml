@@ -1,0 +1,7 @@
+- name: Setup vlans based on OS
+  include: "{{ ansible_os_family|lower }}.yaml"
+
+- name: Bring the VLANs up
+  shell: "ifup vlan{{ item }}"
+  with_items:
+  - "{{ vlans }}"

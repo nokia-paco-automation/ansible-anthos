@@ -1,0 +1,9 @@
+install_pkg:
+- lxcfs
+- vlan
+- build-essential
+
+sriov_pkg:
+- libnuma-dev
+- pciutils
+- python

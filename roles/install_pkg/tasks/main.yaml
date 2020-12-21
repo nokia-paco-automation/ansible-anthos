@@ -1,0 +1,8 @@
+- name: Include OS specific dependencies
+  include: "{{ ansible_os_family|lower }}.yaml"
+
+# we must update OS packager cache (default images does not have any list of packages)
+# w/o it we run into 'package not found' errors
+# the state flag will try to install latest available version of a package
+- name: Install core packages
+  action: "{{ ansible_pkg_mgr }} name={{ install_pkg }} state=latest update_cache=true"

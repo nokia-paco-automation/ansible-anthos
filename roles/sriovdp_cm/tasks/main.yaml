@@ -1,0 +1,35 @@
+# - name: Get all VF PCI IDs
+#   shell: "lspci -D | grep $(cut -d : -f-2 <<< {{ pci_dev }}) | grep -v $(cut -d . -f1 <<< {{ pci_dev }}) | awk '{print $1}' | sort"
+#   args:
+#     executable: /bin/bash
+#   register: vf_list
+#   when: "(install_net_driver|default(false))"
+
+# # For each vf, generate a string in the format of [vendor id]:[dev id]:[driver]. E.g. 8086:154c:vfio-pci
+# - name: Get sriov drivers
+#   shell: "vd=`lspci -s {{ item }} -nnv | grep '[a-fA-F0-9]{4}:[a-fA-F0-9]{4}' -m 1 -oP`;dr=`lspci -s {{ item }} -nnv | grep -oP 'Kernel driver in use: \\K.*'`;echo $vd:$dr"
+#   loop: "{{ vf_list.stdout_lines }}"
+#   register: sriov_drivers_out
+#   when: "(install_net_driver|default(false))"
+
+# - name: Merge sriov drivers
+#   set_fact:
+#     sriov_drivers: "{{ sriov_drivers|default({}) | combine( {item.stdout: true} ) }}"
+#   with_items: "{{ sriov_drivers_out.results|default([]) }}"
+
+# - name: Merge all SRIOV drivers
+#   become: false
+#   run_once: true
+#   delegate_to: localhost
+#   delegate_facts: true
+#   set_fact:
+#     all_sriov_drivers: "{{ all_sriov_drivers|default({}) | combine( item.value['sriov_drivers']|default({}) ) }}"
+#   with_dict: "{{ hostvars }}"
+
+- name: Generate configmap for SRIOV device plugin
+  become: false
+  run_once: true
+  template:
+    src: "sriovdp_configmap.j2"
+    dest: "../build/sriovdp_cm.yaml"
+  delegate_to: localhost

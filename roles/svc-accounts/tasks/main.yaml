@@ -1,0 +1,84 @@
+---
+- name: enable gcloud services
+  shell: gcloud services enable --project={{ project_id }} \
+    container.googleapis.com \
+    gkeconnect.googleapis.com \
+    gkehub.googleapis.com \
+    cloudresourcemanager.googleapis.com \
+    anthos.googleapis.com
+
+- name: create svc account
+  shell: gcloud iam service-accounts create connect-agent-svc-account --project={{ project_id }}
+  register: response
+  failed_when:
+    - response.rc > 1
+    - response.rc == 1 and "already exists" not in result.stderr
+
+- name: add iam policy binding
+  shell: gcloud projects add-iam-policy-binding  {{ project_id }} \
+    --member="serviceAccount:connect-agent-svc-account@{{ project_id }}.iam.gserviceaccount.com" \
+    --role="roles/gkehub.connect"
+
+- name: iam create iam policy keys
+  shell: gcloud iam service-accounts keys create ~/{{anthos_dir}}/connect-agent.json \
+    --iam-account=connect-agent-svc-account@{{ project_id }}.iam.gserviceaccount.com \
+    --project={{ project_id }}
+
+- name: iam create svc account
+  shell: gcloud iam service-accounts create connect-register-svc-account \
+    --project={{ project_id }}
+  register: response
+  failed_when:
+    - response.rc > 1
+    - response.rc == 1 and "already exists" not in result.stderr
+
+- name: iam add policy binding
+  shell: gcloud projects add-iam-policy-binding {{ project_id }} \
+    --member="serviceAccount:connect-register-svc-account@{{ project_id }}.iam.gserviceaccount.com" \
+    --role=roles/gkehub.admin
+
+- name: iam create iam policy keys
+  shell: gcloud iam service-accounts keys create ~/{{anthos_dir}}/connect-register.json \
+    --iam-account=connect-register-svc-account@{{ project_id }}.iam.gserviceaccount.com \
+    --project={{ project_id }}
+
+- name: monitoring
+  shell: gcloud services enable --project {{ project_id }} \
+    anthos.googleapis.com \
+    anthosgke.googleapis.com \
+    cloudresourcemanager.googleapis.com \
+    container.googleapis.com \
+    gkeconnect.googleapis.com \
+    gkehub.googleapis.com \
+    serviceusage.googleapis.com \
+    stackdriver.googleapis.com \
+    monitoring.googleapis.com \
+    logging.googleapis.com
+
+- name: create svc account
+  shell: gcloud iam service-accounts create logging-monitoring-svc-account \
+    --project={{ project_id }}
+  register: response
+  failed_when:
+    - response.rc > 1
+    - response.rc == 1 and "already exists" not in result.stderr
+
+- name: iam add policy-binding
+  shell: gcloud projects add-iam-policy-binding {{ project_id }} \
+    --member="serviceAccount:logging-monitoring-svc-account@{{ project_id }}.iam.gserviceaccount.com" \
+    --role="roles/logging.logWriter"
+
+- name: iam add policy binding
+  shell: gcloud projects add-iam-policy-binding {{ project_id }} \
+    --member="serviceAccount:logging-monitoring-svc-account@{{ project_id }}.iam.gserviceaccount.com" \
+    --role="roles/stackdriver.resourceMetadata.writer"
+
+- name: iam add policy binding
+  shell: gcloud projects add-iam-policy-binding {{ project_id }} \
+    --member="serviceAccount:logging-monitoring-svc-account@{{ project_id }}.iam.gserviceaccount.com" \
+    --role="roles/monitoring.dashboardEditor"
+
+- name: iam create service keys
+  shell: gcloud iam service-accounts keys create ~/{{anthos_dir}}/cloud-ops.json \
+    --iam-account=logging-monitoring-svc-account@{{ project_id }}.iam.gserviceaccount.com \
+    --project={{ project_id }}

@@ -13,17 +13,17 @@ tags:
 global:
   env_name: amf
   k8s_apiserver_endpoints:
-    - 10.96.0.1
+    - {{ cni_networks.svc_cidr | ansible.netcommon.nthhost(1) }}
   k8s_apiserver_port: 443
   env_separator: '-'
   ne_type: amf
   cmm_uuid: ef4c4186-275b-40ee-afb9-6aeaf317b042
   necccount: 2
-  storageclass: nfs-csi 
+  storageclass: {{ storage.csi}} 
   timezone: Europe/Brussels
   stdout_logging: true
   aws_ip_mgmt: false
-  aws_ip_mgmt_image: harbor.nokia.cloudpj.be/paco/aws_ip_mgmt:2.3
+  aws_ip_mgmt_image: {{paco_sw.harbor.server}}/{{paco_sw.harbor.image_dir}}/aws_ip_mgmt:2.3
   disable_hpa: false
   disable_apparmor: true
   rbac_resourcename:
@@ -93,42 +93,42 @@ global:
     type: "ipv4"
     ipv4:
       ip:
-        - 10.1.10.151
-        - 10.1.10.152
-        - 10.1.10.153
-        - 10.1.10.154
-      floating_ip: 10.1.10.200
-      cidr: 10.1.10.0/24
-      gw: 10.1.10..1 
+        - {{ multus_networks.multus_mgmt.itfce_cidr[0] | ansible.netcommon.nthhost(151) }}
+        - {{ multus_networks.multus_mgmt.itfce_cidr[0] | ansible.netcommon.nthhost(152) }}
+        - {{ multus_networks.multus_mgmt.itfce_cidr[0] | ansible.netcommon.nthhost(153) }}
+        - {{ multus_networks.multus_mgmt.itfce_cidr[0] | ansible.netcommon.nthhost(154) }}
+      floating_ip: {{ multus_networks.multus_mgmt.itfce_cidr[0] | ansible.netcommon.nthhost(200) }}
+      cidr: {{ multus_networks.multus_mgmt.itfce_cidr[0] | ansible.netcommon.ipaddr('net') }}
+      gw: {{ multus_networks.multus_mgmt.itfce_cidr[0] | ansible.netcommon.nthhost(1) }}
     interface: eth2
-    host_interface: bond0.100
+    host_interface: {{multus_networks.ipvlan_name}}.{{ multus_networks.multus_mgmt.vlan }}
   external_cni: ipvlan
   external:
     ipds:
     - name: 3GPP_External
       type: ipv4
-      host_interface: bond0.102
+      host_interface: {{multus_networks.ipvlan_name}}.{{multus_networks.multus_3gpp_external.vlan}}
       interface: eth3
       ipv4:
-        cidr: 10.1.12.0/24
-        gw: 10.1.12.1
+        cidr: {{ multus_networks.multus_3gpp_external.itfce_cidr[0] | ansible.netcommon.ipaddr('net') }}
+        gw: {{ multus_networks.multus_3gpp_external.itfce_cidr[0] | ansible.netcommon.nthhost(1) }}
         ip:
-          - 10.1.12.151
-          - 10.1.12.152
-          - 10.1.12.152
-          - 10.1.12.153
+          - {{ multus_networks.multus_3gpp_external.itfce_cidr[0] | ansible.netcommon.nthhost(151) }}
+          - {{ multus_networks.multus_3gpp_external.itfce_cidr[0] | ansible.netcommon.nthhost(152) }}
+          - {{ multus_networks.multus_3gpp_external.itfce_cidr[0] | ansible.netcommon.nthhost(153) }}
+          - {{ multus_networks.multus_3gpp_external.itfce_cidr[0] | ansible.netcommon.nthhost(154) }}
     - name: 3GPP_SBA
       type: ipv4
-      host_interface: bond0.103
+      host_interface: {{multus_networks.ipvlan_name}}.{{multus_networks.multus_3gpp_sba.vlan}}
       interface: eth4
       ipv4:
-        cidr: 10.1.13.0/24
-        gw: 10.1.13.1
+        cidr: {{ multus_networks.multus_3gpp_sba.itfce_cidr[0] | ansible.netcommon.ipaddr('net') }}
+        gw: {{ multus_networks.multus_3gpp_sba.itfce_cidr[0] | ansible.netcommon.nthhost(1) }}
         ip:
-          - 10.1.13.151
-          - 10.1.13.152
-          - 10.1.13.153
-          - 10.1.13.154
+          - {{ multus_networks.multus_3gpp_sba.itfce_cidr[0] | ansible.netcommon.nthhost(151) }}
+          - {{ multus_networks.multus_3gpp_sba.itfce_cidr[0] | ansible.netcommon.nthhost(152) }}
+          - {{ multus_networks.multus_3gpp_sba.itfce_cidr[0] | ansible.netcommon.nthhost(153) }}
+          - {{ multus_networks.multus_3gpp_sba.itfce_cidr[0] | ansible.netcommon.nthhost(154) }}
   secrets:
     users:
       cmm_passwd: Nuage_7890
@@ -144,49 +144,49 @@ global:
       root_passwd:
   containers:
     dbs:
-      imageName: harbor.nokia.cloudpj.be/paco/dbs:CMM21.0.0
+      imageName: {{paco_sw.harbor.server}}/{{paco_sw.harbor.image_dir}}/dbs:{{paco_sw.amf.dbs.tag}}
       resources:
-        cpu: 4
-        memory: 8Gi
+        cpu: {{paco_sw.amf.dbs.cpu}}
+        memory: {{paco_sw.amf.dbs.memory}}
       nodeSelector: {}
       antiaffinity: 
         - dbs
       initialDelaySeconds: 15
       periodSeconds: 20
     emms_amms:
-      imageName: harbor.nokia.cloudpj.be/paco/cpps:CMM21.0.0
+      imageName: {{paco_sw.harbor.server}}/{{paco_sw.harbor.image_dir}}/cpps:{{paco_sw.amf.emms_amms.tag}}
       resources:
-        cpu: 4
-        memory: 16Gi
+        cpu: {{paco_sw.amf.emms_amms.cpu}}
+        memory: {{paco_sw.amf.emms_amms.memory}}
       nodeSelector: {}
       antiaffinity:
         - amms
       initialDelaySeconds: 5
       periodSeconds: 20
     ipds:
-      imageName: harbor.nokia.cloudpj.be/paco/ipds:CMM21.0.0
+      imageName: {{paco_sw.harbor.server}}/{{paco_sw.harbor.image_dir}}/ipds:{{paco_sw.amf.ipds.tag}}
       resources:
-        cpu: 6
-        memory: 12Gi
+        cpu: {{paco_sw.amf.ipds.cpu}}
+        memory: {{paco_sw.amf.ipds.memory}}
       nodeSelector: {}
       antiaffinity:
         - ipds
       initialDelaySeconds: 30
       periodSeconds: 20
     ipps:
-      imageName: harbor.nokia.cloudpj.be/paco/ipps:CMM21.0.0
+      imageName: {{paco_sw.harbor.server}}/{{paco_sw.harbor.image_dir}}/ipps:{{paco_sw.amf.ipps.tag}}
       resources:
-        cpu: 8
-        memory: 12Gi
+        cpu: {{paco_sw.amf.ipps.cpu}}
+        memory: {{paco_sw.amf.ipps.memory}}
       nodeSelector: {}
       antiaffinity: []
       initialDelaySeconds: 30
       periodSeconds: 20
     necc:
-      imageName: harbor.nokia.cloudpj.be/paco/necc:CMM21.0.0
+      imageName: {{paco_sw.harbor.server}}/{{paco_sw.harbor.image_dir}}/necc:{{paco_sw.amf.necc.tag}}
       resources:
-        cpu: 4
-        memory: 12Gi
+        cpu: {{paco_sw.amf.necc.cpu}}
+        memory: {{paco_sw.amf.necc.memory}}
       nodeSelector: {}
       pvc: true
       antiaffinity:
@@ -194,10 +194,10 @@ global:
       initialDelaySeconds: 120
       periodSeconds: 20
     paps:
-      imageName: harbor.nokia.cloudpj.be/paco/paps:CMM21.0.0
+      imageName: {{paco_sw.harbor.server}}/{{paco_sw.harbor.image_dir}}/paps:{{paco_sw.amf.paps.tag}}
       resources:
-        cpu: 4
-        memory: 12Gi
+        cpu: {{paco_sw.amf.paps.cpu}}
+        memory: {{paco_sw.amf.paps.memory}}
       nodeSelector: {}
       antiaffinity: []
       initialDelaySeconds: 30

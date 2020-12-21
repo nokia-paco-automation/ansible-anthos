@@ -33,74 +33,60 @@ service:
       port: 2000
       targetPort: 2000
 image:
-  repository: {{harbor.server}}/{{harbor.image_dir}}
+  repository: {{paco_sw.harbor.server}}/{{paco_sw.harbor.image_dir}}
   name: lmg
   tag: {{paco_sw.upf.lmg.tag}}
   pullPolicy: IfNotPresent
-  imagePullSecret: {{harbor.name}}
+  imagePullSecret: {{paco_sw.harbor.name}}
 nasc:
   enable: {{paco_sw.upf.nasc.enable}}
-  imageRepository: {{harbor.server}}/{{harbor.image_dir}}
+  imageRepository: {{paco_sw.harbor.server}}/{{paco_sw.harbor.image_dir}}
   imageName: nasc
   imageTag: {{paco_sw.upf.nasc.tag}}
   imagePullPolicy: IfNotPresent
 logging:
   enable: {{paco_sw.upf.logging.enable}}
-  imageRepository: {{harbor.server}}/{{harbor.image_dir}}
+  imageRepository: {{paco_sw.harbor.server}}/{{paco_sw.harbor.image_dir}}
   imageName: lmg
   imageTag: {{paco_sw.upf.logging.tag}}
   imagePullPolicy: IfNotPresent
 awsSideCar:
   enable: {{paco_sw.upf.awsSideCar.enable}}
-  imageRepository: {{harbor.server}}/{{harbor.image_dir}}
+  imageRepository: {{paco_sw.harbor.server}}/{{paco_sw.harbor.image_dir}}
   imageName: aws_sidecar_lmg
   imageTag: {{paco_sw.upf.awsSideCar.tag}}
   imagePullPolicy: Always
 multus:
   lmg:
-    numDevices: 6
+    numDevices: {{ hostvars['worker0']['eth_name']|length * paco_sw.upf.multus }}
     netNames:
-    - hostdevice-net-tor1-int
-    - hostdevice-net-tor1-ext
-    - hostdevice-net-tor1-n6
-    - hostdevice-net-tor2-int
-    - hostdevice-net-tor2-ext
-    - hostdevice-net-tor2-n6
+{% for pf in (hostvars['worker0']['eth_name']) %}
+    - hostdevice-net-tor{{loop.index}}-int
+    - hostdevice-net-tor{{loop.index}}-ext
+    - hostdevice-net-tor{{loop.index}}-n6
+{% endfor %}
   llb:
-    numDevices: 0
+    numDevices: {{ hostvars['worker0']['eth_name']|length * 3 * paco_sw.upf.llb.enable }}
     netNames:
   resourceName: intel.com/intel_sriov_netdevice
   attachDef:
-  - name: hostdevice-net-tor1-int
+{% for pf in (hostvars['worker0']['eth_name']) %}  
+  - name: hostdevice-net-tor{{loop.index}}-int
     cniVersion: 0.3.1
-    vlan: {{ paco_sw.upf.network.vlan[0]}}
-    resourceName: gke/sriov_iavf_1
+    vlan: {{ multus_networks.multus_3gpp_internal.vlan}}
+    resourceName: gke/sriov_iavf_{{loop.index}}
     type: {{ paco_sw.upf.network.type}}
-  - name: hostdevice-net-tor1-ext
+  - name: hostdevice-net-tor{{loop.index}}-ext
     cniVersion: 0.3.1
-    resourceName: gke/sriov_iavf_1
-    vlan: {{ paco_sw.upf.network.vlan[1]}}
+    resourceName: gke/sriov_iavf_{{loop.index}}
+    vlan: {{ multus_networks.multus_3gpp_external.vlan}}
     type: {{ paco_sw.upf.network.type}}
-  - name: hostdevice-net-tor1-n6
+  - name: hostdevice-net-tor{{loop.index}}-n6
     cniVersion: 0.3.1
-    resourceName: gke/sriov_iavf_1
-    vlan: {{ paco_sw.upf.network.vlan[2]}}
+    resourceName: gke/sriov_iavf_{{loop.index}}
+    vlan: {{ multus_networks.multus_gi_n6.vlan}}
     type: {{ paco_sw.upf.network.type}}
-  - name: hostdevice-net-tor2-int
-    cniVersion: 0.3.1
-    resourceName: gke/sriov_iavf_2
-    vlan: {{ paco_sw.upf.network.vlan[0]}}
-    type: {{ paco_sw.upf.network.type}}
-  - name: hostdevice-net-tor2-ext
-    cniVersion: 0.3.1
-    resourceName: gke/sriov_iavf_2
-    vlan: {{ paco_sw.upf.network.vlan[1]}}
-    type: {{ paco_sw.upf.network.type}}
-  - name: hostdevice-net-tor2-n6
-    cniVersion: 0.3.1
-    resourceName: gke/sriov_iavf_2
-    vlan: {{ paco_sw.upf.network.vlan[2]}}
-    type: {{ paco_sw.upf.network.type}}
+{% endfor %}
   groFlag: 1
   dsfEnable: 0
 gwConfig: upf
@@ -116,35 +102,35 @@ llbScale:
   targetCPUUtilizationPercentage: 90
 resources:
   loam:
-    cpu: 4
-    memory: 4Gi
+    cpu: {{ paco_sw.upf.loam.cpu}}
+    memory: {{ paco_sw.upf.loam.memory}}
     nodeSelector: {}
   lmg:
-    cpu: 6
-    memory: 16Gi
+    cpu: {{ paco_sw.upf.lmg.cpu}}
+    memory: {{ paco_sw.upf.lmg.memory}}
     multus:
-    - resourceName: gke/sriov_iavf_1
-      numDevices: 3
-    - resourceName: gke/sriov_iavf_2
-      numDevices: 3
+{% for pf in (hostvars['worker0']['eth_name']) %}  
+    - resourceName: gke/sriov_iavf_{{ loop.index }}
+      numDevices: {{ paco_sw.upf.multus }}
+{% endfor %}
     nodeSelector: {}
   llb:
-    cpu: 6
-    memory: 16Gi
+    cpu: {{ paco_sw.upf.llb.cpu}}
+    memory: {{ paco_sw.upf.llb.memory}}
     multus:
-    - resourceName: gke/sriov_iavf_1
-      numDevices: 0
-    - resourceName: gke/sriov_iavf_2
-      numDevices: 0
+{% for pf in (hostvars['worker0']['eth_name']) %}  
+    - resourceName: gke/sriov_iavf_{{ loop.index }}
+      numDevices: {{ paco_sw.upf.multus * paco_sw.upf.llb.enable }}
+{% endfor %}
   nasc:
-    cpu: 100m
-    memory: 100Mi
+    cpu: {{ paco_sw.upf.nasc.cpu}}
+    memory: {{ paco_sw.upf.nasc.memory}}
   logging:
-    cpu: 100m
-    memory: 100Mi
+    cpu: {{ paco_sw.upf.logging.cpu}}
+    memory: {{ paco_sw.upf.logging.memory}}
   awsSideCar:
-    cpu: 100m
-    memory: 100Mi
+    cpu: {{ paco_sw.upf.awsSideCar.cpu}}
+    memory: {{ paco_sw.upf.awsSideCar.memory}}
 storage:
 #pvCreation to be set to 0 in case Persistent Volume already created
   pvCreation: 1
@@ -173,11 +159,11 @@ podsecuritypolicy:
   create: false
 isa:
   nat:
-    enable: true
+    enable: {{ paco_sw.upf.nat.enable }}
     routerId: 2
 peers:
   smf:
-    ip: 10.1.21.60
+    ip: {{ multus_networks.multus_3gpp_internal.itfce_cidr[1] | ansible.netcommon.nthhost(60) }}
     interface: sigRefPointIf 
 plmn:
 - mcc: "234"
@@ -186,13 +172,13 @@ uuid: a72d6347-190c-49d8-8ad4-bda4ed3018ed
 network:
   interface:
   - name: sigRefPointIf
-    ip: 10.1.21.70
-    subnet: 24
+    ip: {{ multus_networks.multus_3gpp_internal.itfce_cidr[1] | ansible.netcommon.nthhost(70) }}
+    subnet: {{ multus_networks.multus_3gpp_internal.itfce_cidr[1] | ansible.netcommon.ipaddr('prefix') }}
     port: 1/2/1
     bfd: false
   - name: sigExt
-    ip: 10.1.22.70
-    subnet: 24
+    ip: {{ multus_networks.multus_3gpp_external.itfce_cidr[1] | ansible.netcommon.nthhost(70) }}
+    subnet: {{ multus_networks.multus_3gpp_internal.itfce_cidr[1] | ansible.netcommon.ipaddr('prefix') }}
     port: 1/2/2
     bfd: false
   - name: system
@@ -203,7 +189,7 @@ network:
   staticRoute:
   - subnet: 0.0.0.0/0
     nextHop:
-    - 10.1.22.1
+    - {{ multus_networks.multus_3gpp_external.itfce_cidr[1] | ansible.netcommon.nthhost(1) }}
     bfd: false
   bgp:
 apn:
@@ -213,29 +199,29 @@ apn:
     name: pool1
 uepool:
 - router: vprn1
-  ipv4Prefix: 10.0.128.0/17
+  ipv4Prefix: {{ multus_networks.multus_gi_n6.pool_cidr | ansible.netcommon.ipaddr('net') }}
 vprn:
 - id: 1
   ipLocalPool:
   - name: pool1
-    ipv4Prefix: 10.0.128.0/17
+    ipv4Prefix: {{ multus_networks.multus_gi_n6.pool_cidr | ansible.netcommon.ipaddr('net') }}
   nat:
     type: inside
 - id: 2
   interface:
   - name: sgi
-    ip: 10.1.24.70
-    subnet: 24
+    ip: {{ multus_networks.multus_gi_n6.itfce_cidr[1] | ansible.netcommon.nthhost(70) }}
+    subnet: {{ multus_networks.multus_gi_n6.itfce_cidr[1] | ansible.netcommon.ipaddr('prefix') }}
     sap: 1/2/3
     bfd: false
   nat:
     type: outside
     addressRange:
-      start: 10.1.24.71
-      end: 10.1.24.71
+      start: {{ multus_networks.multus_gi_n6.itfce_cidr[1] | ansible.netcommon.nthhost(71) }}
+      end: {{ multus_networks.multus_gi_n6.itfce_cidr[1] | ansible.netcommon.nthhost(71) }}
   staticRoute:
   - subnet: 0.0.0.0/0
     nextHop:
-    - 10.1.24.1
+    - {{ multus_networks.multus_gi_n6.itfce_cidr[1] | ansible.netcommon.nthhost(1) }}
     bfd: false
 cnfName: upf

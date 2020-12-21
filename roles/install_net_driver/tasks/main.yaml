@@ -1,0 +1,31 @@
+- name: Install SRIOV packages
+  action: "{{ ansible_pkg_mgr }} name={{ sriov_pkg }} state=latest update_cache=true"
+
+# - name: Get SRIOV file path
+#   shell: "find /sys/devices -name sriov_numvfs | grep {{ item }}/sriov_numvfs"
+#   register: sriov_path
+#   with_items: "{{ pci_dev }}"
+
+- name: Setup SRIOV per distribution
+  include: "{{ ansible_os_family|lower }}.yaml"
+
+- name: debug net_mod
+  debug:
+    msg: "{{ net_mod }}"
+
+- name: Run module specific installation
+  include: "{{ item }}.yaml"
+  with_items: "{{ net_mod|lower }}"
+
+- name: Enable SRIOV VFs
+  shell: "echo {{ num_sriov_vfs }} > /sys/class/net/{{item}}/device/sriov_numvfs"
+  with_items: "{{hostvars[inventory_hostname].eth_name}}"
+
+- name: Install DPDK
+  include: "dpdk.yaml"
+  when: "num_vfio_pci|default(0) + num_igb_uio|default(0) > 0"
+
+- name: Add install flag
+  file:
+    path: "{{ install_flag }}"
+    state: touch

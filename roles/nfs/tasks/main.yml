@@ -2,7 +2,7 @@
   - name: Create storage class file
     template: 
       src: "{{ item }}.j2"
-      dest: charts/{{ item }}
+      dest: ../build/{{ item }}
       mode: 0644
     with_items:
       - storageclass.yaml
@@ -11,14 +11,14 @@
   - name: Create NFS storageclass, pv and pvc(s)
     shell: kubectl apply -f {{ item }}
     args:
-      chdir: charts
+      chdir: ../build
     with_items:
       - storageclass.yaml
 
   - name: Create nfs csi install.sh file
     template: 
       src: "{{ item }}.j2"
-      dest: charts/{{ item }}
+      dest: ../build/{{ item }}
       mode: 0755
     with_items:
       - nfscsiinstall.sh
@@ -27,7 +27,7 @@
   - name: Install NFS CSI driver
     shell: ./{{item}}
     args:
-      chdir: charts
+      chdir: ../build
     with_items:
       - nfscsiinstall.sh
   

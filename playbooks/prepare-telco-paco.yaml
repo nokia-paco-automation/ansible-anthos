@@ -1,0 +1,104 @@
+- hosts: all
+  become: true
+  vars:
+    pci_dev: []
+  pre_tasks:
+    - name: validate real time scheduling/kernel
+      assert:
+        that:
+          - "not (install_rt_sched is defined and install_rt_sched and install_rt_kernel is defined and install_rt_kernel)"
+        msg: Can't install rt_sched and rt_kernel at the same time.
+        quiet: true
+    - name: validate interface existance
+      assert: 
+        that: 
+          - "{{ 'ansible_' + item in hostvars[inventory_hostname] }}"
+        msg: Interface "{{ item }}" not found.
+        quiet: true
+      when: "install_net_driver is defined or vlans is defined"
+      with_items: "{{hostvars[inventory_hostname].eth_name}}"          
+    - name: validate virtual functions
+      assert:
+        that:
+          - "not (num_vfio_pci|default(0) + num_igb_uio|default(0) > 0 and not install_net_driver )"
+        fail_msg: install_net_driver must be turned on if DPDK is needed.
+        quiet: true
+    - name: validate virtual functions
+      assert:
+        that:
+          - "(num_vfio_pci|default(0)) + (num_igb_uio|default(0)) <= num_sriov_vfs"
+        fail_msg: num_vfio_pci ({{ num_vfio_pci|default(0) }}) + num_igb_uio ({{ num_igb_uio|default(0) }}) exceeds num_sriov_vfs ({{ num_sriov_vfs }})
+        quiet: true
+    - name: Get driver installation flag
+      stat:
+        path: "{{ install_flag }}"
+      register: drv_inst
+    - name: Get kernel installation flag
+      stat:
+        path: "{{ kernel_flag }}"
+      register: krn_inst
+    - set_fact:
+        net_mod: "{{hostvars[inventory_hostname]['ansible_' + item]['module'] }}"
+        pci_dev: "{{pci_dev}} + {{hostvars[inventory_hostname]['ansible_' + item]['pciid'] }}"
+      with_items: "{{hostvars[inventory_hostname].eth_name}}"
+    - debug: 
+        msg={{ net_mod }}
+    - debug:
+        msg={{ pci_dev }}
+    - group_by: key={{ ansible_os_family | lower }}
+    - name: add modules
+      lineinfile:
+        create: true
+        path: /etc/modules-load.d/telco.conf
+        line: "{{ item }}"
+        insertafter: EOF
+      with_items:
+      - vrf
+      - 8021q
+    - name: load modules
+      modprobe:
+        name: "{{ item }}"
+        state: present
+      with_items:
+      - vrf
+      - 8021q
+  roles:
+    # - role: add_cnis
+    # - role: install_pkg
+    # - role: setup_vlans
+    #   when: "vlans is defined"
+    # - role: update_dist
+    #   when: "need_update_dist|default(false)"
+    # - role: enable_rt_sched
+    #   when: "(install_rt_sched|default(false)) and not krn_inst.stat.exists"
+    # - role: enable_rt_kernel
+    #   when: "(install_rt_kernel|default(false)) and not krn_inst.stat.exists"
+    # - role: install_net_driver
+    #   when: "(install_net_driver|default(false)) and not drv_inst.stat.exists"
+    # - role: sriovdp_cm
+    # - role: grub_config
+    #   when: "grub_linux_cmd is defined"
+    # - role: disable_upgrade
+    #   when: "disable_auto_upgrade|default(false)"
+    # - role: k8s-env
+    # - role: kubelet
+
+- hosts: localhost
+  pre_tasks:
+    - name: validate sriov file existance
+      stat: 
+        path: ../build/sriovdp_cm.yaml
+      register: stat_result
+    - name: validate sriov file existance
+      assert:
+        that:
+          - stat_result.stat.exists
+        msg: Run ansible-playbook playbooks/prepare.yml first
+        quiet: true
+  roles:
+    #- { role: k9s, tags: k9s }
+    #- { role: helm, tags: helm }
+    #- { role: nfs, tags: nfs }
+    #- { role: multus, tags: multus }
+    #- { role: whereabouts, tags: whereabouts }
+    - { role: paco/prepare, tags: paco/prepare}

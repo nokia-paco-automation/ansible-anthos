@@ -1,0 +1,6 @@
+- rpm_key:
+    state: present
+    key: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+
+- name: Install EPEL if needed
+  action: "{{ ansible_pkg_mgr }} name=https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm state=present"

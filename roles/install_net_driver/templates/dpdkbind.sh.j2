@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -e
+
+cd /opt/dpdk-stable-19.11.3/usertools
+
+{% for vf in vfs.stdout_lines %}
+{% set nvp = num_vfio_pci|default(0) %}
+{% set niu = num_igb_uio|default(0) %}
+{% if loop.index <= nvp %}
+./dpdk-devbind.py --bind=vfio-pci {{ vf }}
+{% elif loop.index <= niu + nvp %}
+./dpdk-devbind.py --bind=igb_uio {{ vf }}
+{% endif %}
+{% endfor %}

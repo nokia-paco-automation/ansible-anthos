@@ -1,0 +1,13 @@
+- name: source interfaces.d
+  lineinfile:
+    path: /etc/network/interfaces
+    line: 'source-directory interfaces.d'
+    insertbefore: BOF
+
+- name: Create VLANs config files
+  template:
+    src: debian_vlan.conf.j2
+    dest: "/etc/network/interfaces.d/{{ eth_name }}{{ item }}"
+  with_items:
+  - "{{ vlans }}"
+

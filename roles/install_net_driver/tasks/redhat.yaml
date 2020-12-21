@@ -1,0 +1,59 @@
+- name: Check if kernel src is present
+  stat:
+    path: "/usr/src/kernels/{{ ansible_kernel }}"
+  register: kernel_src
+
+- name: Download kernel src
+  get_url:
+    url: "https://www.rpmfind.net/linux/centos/8.1.1911/BaseOS/x86_64/os/Packages/kernel-devel-{{ ansible_kernel }}.rpm"
+    dest: "/tmp/kernel-devel-{{ ansible_kernel }}.rpm"
+    timeout: 60
+  retries: 5
+  delay: 1
+  register: result
+  until: result is succeeded and  result.size > 10240
+  when: "not kernel_src.stat.exists"
+
+- name: Install kernel src
+  dnf:
+    name: "/tmp/kernel-devel-{{ ansible_kernel }}.rpm"
+    state: present
+  when: "not kernel_src.stat.exists"
+
+- name: Download kernel mod
+  get_url:
+    url: "https://rpmfind.net/linux/centos/8.1.1911/BaseOS/x86_64/os/Packages/kernel-modules-{{ ansible_kernel }}.rpm"
+    dest: "/tmp/kernel-modules-{{ ansible_kernel }}.rpm"
+    timeout: 60
+  retries: 5
+  delay: 1
+  register: result
+  until: result is succeeded and  result.size > 10240
+
+- name: Install kernel mod
+  dnf:
+    name: "/tmp/kernel-modules-{{ ansible_kernel }}.rpm"
+    state: present
+
+- name: Enable NetworkManager-dispatcher
+  systemd:
+    enabled: true
+    name: NetworkManager-dispatcher
+    state: started
+
+- name: Set SRIOV VFs
+  copy:
+    dest: "/etc/NetworkManager/dispatcher.d/pre-up.d/10-sriov-vf"
+    mode: "0744"
+    content: |
+      #!/bin/sh
+      if [ "$1" == "{{ eth_name  }}" ]
+      then
+        echo '{{ num_sriov_vfs }}' > "{{ sriov_path.stdout }}"
+      fi
+
+- name: symlink /usr/bin/python -> /usr/bin/python3
+  shell: |
+    if [ ! -f /usr/bin/python ]; then
+      ln --symbolic /usr/bin/python3 /usr/bin/python;
+    fi

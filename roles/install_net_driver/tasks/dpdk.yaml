@@ -1,0 +1,88 @@
+- assert:
+    that:
+      - "net_mod == 'i40e'"
+    msg: Doesn't support non-intel NIC for DPDK "{{ net_mod }}"
+    quiet: true
+
+- name: Download DPDK
+  get_url:
+    url: https://fast.dpdk.org/rel/dpdk-19.11.3.tar.xz
+    dest: /tmp/dpdk-19.11.3.tar.xz
+    timeout: 60
+  retries: 5
+  delay: 1
+  register: result
+  until: result is succeeded and result.size > 10240
+
+- name: Unarchive
+  unarchive:
+    src: /tmp/dpdk-19.11.3.tar.xz
+    dest: /opt
+    remote_src: true
+    creates: /opt/dpdk-stable-19.11.3
+
+- name: Install DPDK
+  shell: "{{ item }}"
+  args:
+    chdir: /opt/dpdk-stable-19.11.3
+  with_items:
+  - make defconfig O=mybuild
+  - make -j4 O=mybuild
+  - make install O=mybuild DESTDIR=/
+  - depmod
+
+- name: Add modules to modules.conf
+  lineinfile:
+    create: true
+    path: /etc/modules-load.d/telco.conf
+    line: "{{ item }}"
+    insertafter: EOF
+  with_items:
+  - vfio-pci
+  - uio
+  - igb_uio
+
+- name: Load modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  with_items:
+  - vfio-pci
+  - uio
+  - igb_uio
+
+- name: Get all VF PCI IDs
+  shell: "lspci -D | grep $(cut -d : -f-2 <<< {{ pci_dev }}) | grep -v $(cut -d . -f1 <<< {{ pci_dev }}) | awk '{print $1}' | sort"
+  args:
+    executable: /bin/bash
+  register: vfs
+
+- name: Add devbind scripts
+  template:
+    src: dpdkbind.sh.j2
+    dest: "/opt/dpdk-stable-19.11.3/dpdkbind.sh"
+    mode: 0700
+
+- name: Set up dpdkbind.service
+  copy:
+    dest: "/etc/systemd/system/dpdkbind.service"
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=service that binds VFs to dpdk drivers
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      Type=simple
+      ExecStart=sh /opt/dpdk-stable-19.11.3/dpdkbind.sh
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Enable dpdkbind.service
+  systemd:
+    daemon_reload: true
+    enabled: true
+    name: dpdkbind.service
+    state: restarted

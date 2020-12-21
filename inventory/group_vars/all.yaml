@@ -1,0 +1,14 @@
+install_flag: /opt/drv_install
+kernel_flag: /opt/kernel_install
+num_sriov_vfs: 10
+
+kernel_pkg:
+- git
+- kernel-package
+- fakeroot
+- libncurses5-dev
+- libssl-dev
+- ccache
+- bison
+- flex
+- libelf-dev

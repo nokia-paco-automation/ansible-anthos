@@ -1,0 +1,11 @@
+- name: Set grub kernel command
+  lineinfile:
+    path: /etc/default/grub
+    regex: "GRUB_CMDLINE_LINUX=*$"
+    line: "GRUB_CMDLINE_LINUX=\"{{ grub_linux_cmd }}\""
+
+- name: Update grub config per distribution
+  include: "{{ ansible_os_family|lower }}.yaml"
+
+- name: Reboot
+  reboot: null

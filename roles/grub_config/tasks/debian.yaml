@@ -1,0 +1,2 @@
+- name: Update grub config
+  shell: "update-grub"

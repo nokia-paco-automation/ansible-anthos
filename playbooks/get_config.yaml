@@ -1,0 +1,8 @@
+- hosts: all
+  become: true
+  tasks:
+  - name: List interfaces
+    vars:
+      msg: "{% for eth in ansible_interfaces %}{% if 'type' in hostvars[inventory_hostname]['ansible_' + eth] and 'module' in hostvars[inventory_hostname]['ansible_' + eth] and hostvars[inventory_hostname]['ansible_' + eth]['type'] == 'ether' %}eth_name={{ eth }} net_mod={{ hostvars[inventory_hostname]['ansible_' + eth]['module']}} pci_dev={{ hostvars[inventory_hostname]['ansible_' + eth]['pciid']}}|{% endif %}{% endfor %}"
+    debug:
+      msg: "{{ msg.split('|') }}"

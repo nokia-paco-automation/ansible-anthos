@@ -1,0 +1,13 @@
+ipv4Prefix: {{ multus_networks.multus_gi_n6.pool_cidr | ansible.netcommon.ipaddr('net') }}
+subnet: {{ multus_networks.multus_3gpp_internal.itfce_cidr[2]  | ansible.netcommon.ipaddr('prefix') }}
+ipaddres: {{ multus_networks.multus_3gpp_internal.itfce_cidr[2] | ansible.netcommon.nthhost(115) }}
+
+
+{% for pf in (hostvars['worker0']['eth_name']) %}
+    - hostdevice-net-tor{{loop.index}}-int
+    - hostdevice-net-tor{{loop.index}}-ext
+    - hostdevice-net-tor{{loop.index}}-n6
+{% endfor %}
+
+
+{{ hostvars['worker0']['eth_name']|length * 3 }}

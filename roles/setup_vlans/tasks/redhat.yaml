@@ -1,0 +1,7 @@
+- name: Create VLANs config files
+  template:
+    src: redhat_vlan.conf.j2
+    dest: "/etc/sysconfig/network-scripts/ifcfg-vlan{{ item }}"
+  with_items:
+  - "{{ vlans }}"
+

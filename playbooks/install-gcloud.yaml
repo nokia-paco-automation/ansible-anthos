@@ -1,0 +1,3 @@
+- hosts: localhost
+  roles:
+    - { role: gcloud-sdk, tags: gcloud-sdk}

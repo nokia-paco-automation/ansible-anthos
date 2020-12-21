@@ -1,0 +1,11 @@
+install_pkg:
+- lxcfs
+- gcc
+- gcc-c++
+- make
+
+sriov_pkg:
+- numactl-devel
+- pciutils
+- python3
+- elfutils-libelf-devel

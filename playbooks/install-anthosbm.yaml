@@ -1,0 +1,6 @@
+- hosts: localhost
+  roles:
+    - { role: kubectl, tags: kubectl}
+    - { role: bmctl, tags: bmctl}
+    - { role: svc-accounts, tags: svc-accounts}
+    - { role: anthos, tags: anthos }

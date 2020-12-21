@@ -1,2 +1,4 @@
 PRIVATE.md
 support/*
+build/*
+inventory/nokia.yaml
