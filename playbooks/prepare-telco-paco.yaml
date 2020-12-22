@@ -63,25 +63,25 @@
       - vrf
       - 8021q
   roles:
-    # - role: add_cnis
-    # - role: install_pkg
-    # - role: setup_vlans
-    #   when: "vlans is defined"
-    # - role: update_dist
-    #   when: "need_update_dist|default(false)"
-    # - role: enable_rt_sched
-    #   when: "(install_rt_sched|default(false)) and not krn_inst.stat.exists"
-    # - role: enable_rt_kernel
-    #   when: "(install_rt_kernel|default(false)) and not krn_inst.stat.exists"
-    # - role: install_net_driver
-    #   when: "(install_net_driver|default(false)) and not drv_inst.stat.exists"
-    # - role: sriovdp_cm
-    # - role: grub_config
-    #   when: "grub_linux_cmd is defined"
-    # - role: disable_upgrade
-    #   when: "disable_auto_upgrade|default(false)"
-    # - role: k8s-env
-    # - role: kubelet
+    - role: add_cnis
+    - role: install_pkg
+    - role: setup_vlans
+      when: "vlans is defined"
+    - role: update_dist
+      when: "need_update_dist|default(false)"
+    - role: enable_rt_sched
+      when: "(install_rt_sched|default(false)) and not krn_inst.stat.exists"
+    - role: enable_rt_kernel
+      when: "(install_rt_kernel|default(false)) and not krn_inst.stat.exists"
+    - role: install_net_driver
+      when: "(install_net_driver|default(false)) and not drv_inst.stat.exists"
+    - role: sriovdp_cm
+    - role: grub_config
+      when: "grub_linux_cmd is defined"
+    - role: disable_upgrade
+      when: "disable_auto_upgrade|default(false)"
+    - role: k8s-env
+    - role: kubelet
 
 - hosts: localhost
   pre_tasks:
@@ -96,9 +96,9 @@
         msg: Run ansible-playbook playbooks/prepare.yml first
         quiet: true
   roles:
-    #- { role: k9s, tags: k9s }
-    #- { role: helm, tags: helm }
-    #- { role: nfs, tags: nfs }
-    #- { role: multus, tags: multus }
-    #- { role: whereabouts, tags: whereabouts }
+    - { role: k9s, tags: k9s }
+    - { role: helm, tags: helm }
+    - { role: nfs, tags: nfs }
+    - { role: multus, tags: multus }
+    - { role: whereabouts, tags: whereabouts }
     - { role: paco/prepare, tags: paco/prepare}
