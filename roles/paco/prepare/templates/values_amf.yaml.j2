@@ -101,13 +101,13 @@ global:
       cidr: {{ multus_networks.multus_mgmt.itfce_cidr[0] | ansible.netcommon.ipaddr('net') }}
       gw: {{ multus_networks.multus_mgmt.itfce_cidr[0] | ansible.netcommon.nthhost(1) }}
     interface: eth2
-    host_interface: {{multus_networks.ipvlan_name}}.{{ multus_networks.multus_mgmt.vlan }}
+    host_interface: {{multus_networks.ipvlan_name}}.{{ multus_networks.multus_mgmt.vlan[0] }}
   external_cni: ipvlan
   external:
     ipds:
     - name: 3GPP_External
       type: ipv4
-      host_interface: {{multus_networks.ipvlan_name}}.{{multus_networks.multus_3gpp_external.vlan}}
+      host_interface: {{multus_networks.ipvlan_name}}.{{multus_networks.multus_3gpp_external.vlan[0]}}
       interface: eth3
       ipv4:
         cidr: {{ multus_networks.multus_3gpp_external.itfce_cidr[0] | ansible.netcommon.ipaddr('net') }}
@@ -119,7 +119,7 @@ global:
           - {{ multus_networks.multus_3gpp_external.itfce_cidr[0] | ansible.netcommon.nthhost(154) }}
     - name: 3GPP_SBA
       type: ipv4
-      host_interface: {{multus_networks.ipvlan_name}}.{{multus_networks.multus_3gpp_sba.vlan}}
+      host_interface: {{multus_networks.ipvlan_name}}.{{multus_networks.multus_3gpp_sba.vlan[0]}}
       interface: eth4
       ipv4:
         cidr: {{ multus_networks.multus_3gpp_sba.itfce_cidr[0] | ansible.netcommon.ipaddr('net') }}

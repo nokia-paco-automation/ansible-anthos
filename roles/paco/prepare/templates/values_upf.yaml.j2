@@ -73,13 +73,13 @@ multus:
 {% for pf in (hostvars['worker0']['eth_name']) %}  
   - name: hostdevice-net-tor{{loop.index}}-int
     cniVersion: 0.3.1
-    vlan: {{ multus_networks.multus_3gpp_internal.vlan}}
+    vlan: {{ multus_networks.multus_3gpp_internal.vlan[loop.index]}}
     resourceName: gke/sriov_iavf_{{loop.index}}
     type: {{ paco_sw.upf.network.type}}
   - name: hostdevice-net-tor{{loop.index}}-ext
     cniVersion: 0.3.1
     resourceName: gke/sriov_iavf_{{loop.index}}
-    vlan: {{ multus_networks.multus_3gpp_external.vlan}}
+    vlan: {{ multus_networks.multus_3gpp_external.vlan[loop.index]}}
     type: {{ paco_sw.upf.network.type}}
   - name: hostdevice-net-tor{{loop.index}}-n6
     cniVersion: 0.3.1
