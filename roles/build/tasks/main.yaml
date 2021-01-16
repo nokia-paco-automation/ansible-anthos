@@ -1,0 +1,7 @@
+- name: create build directory
+  become: false
+  run_once: true
+  file:
+    path: ../build
+    state: directory
+  delegate_to: localhost

@@ -1,5 +1,6 @@
 ---
-  - name: install k9s
-    snap:
-      name: k9s
-      classic: yes
+- name: install k9s
+  become: true
+  snap:
+    name: k9s
+    classic: yes

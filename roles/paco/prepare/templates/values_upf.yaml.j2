@@ -84,7 +84,7 @@ multus:
   - name: hostdevice-net-tor{{loop.index}}-n6
     cniVersion: 0.3.1
     resourceName: gke/sriov_iavf_{{loop.index}}
-    vlan: {{ multus_networks.multus_gi_n6.vlan}}
+    vlan: {{ multus_networks.multus_gi_n6.vlan[loop.index]}}
     type: {{ paco_sw.upf.network.type}}
 {% endfor %}
   groFlag: 1

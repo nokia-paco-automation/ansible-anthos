@@ -13,7 +13,7 @@ tags:
 global:
   env_name: amf
   k8s_apiserver_endpoints:
-    - {{ cni_networks.svc_cidr | ansible.netcommon.nthhost(1) }}
+    - "{{ cni_networks.svc_cidr | ansible.netcommon.nthhost(1) }}"
   k8s_apiserver_port: 443
   env_separator: '-'
   ne_type: amf

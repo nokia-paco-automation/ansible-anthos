@@ -7,11 +7,11 @@
       state: directory
     delegate_to: localhost
       
-  - name: copy kubeconfig kubeconfig
+  - name: copy kubeconfig
     become: false
     run_once: true
     copy:
-      src: "~/baremetal/bmctl-workspace/{{cluster_name}}/{{cluster_name}}-kubeconfig"
+      src: "/home/{{ansible_user}}/baremetal/bmctl-workspace/{{cluster_name}}/{{cluster_name}}-kubeconfig"
       dest: ~/.kube/config
       remote_src: yes
     delegate_to: localhost

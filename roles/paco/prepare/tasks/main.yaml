@@ -4,16 +4,9 @@
 - name: Create values.yaml file per app
   template: 
     src: "{{ item }}.j2"
-    dest: ../build/test-{{ item }}
-    mode: 0644
+    dest: "../build/{{ item }}"
   with_items:
     - values_amf.yaml
     - values_smf.yaml
     - values_upf.yaml
 
-#kubectl label node hyp-3 cmg-node=upf --overwrite
-#kubectl label node hyp-2 cmg-node=upf --overwrite
-#kubectl label node hyp-3 node-type=lmg --overwrite
-#kubectl label node hyp-2 node-type=lmg --overwrite
-#kubectl label node hyp-2 node-type=loam --overwrite
-#kubectl label node hyp-3 node-type=loam --overwrite

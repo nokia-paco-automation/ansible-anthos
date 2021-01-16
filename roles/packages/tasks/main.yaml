@@ -1,0 +1,28 @@
+---
+- name: install packages on centos
+  include_tasks: centos.yaml
+  when: bootstrap_os == "centos"
+    
+- name: install packages on ubuntu
+  include_tasks: ubuntu.yaml
+  when: bootstrap_os == "ubuntu"
+
+# - name: Create a symbolic link
+#   file:
+#     src: /usr/bin/pip3
+#     dest: /usr/bin/pip
+#     state: link
+#     mode: 0755
+
+- name: install pip packages
+  pip:
+    name: "{{ item.pkgname }}"
+    state: latest
+  loop:
+    - { pkgname: "openshift" }
+    # - { pkgname: "docker" }
+    # - { pkgname: "pexpect" }
+    # - { pkgname: "python-consul" }
+    # - { pkgname: "netaddr"}
+    # - { pkgname: "boto"}
+    # - { pkgname: "boto3"}

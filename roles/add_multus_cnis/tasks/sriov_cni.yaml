@@ -1,0 +1,27 @@
+- name: install build packages
+  apt:
+    name: "{{ item.pkgname }}"
+    state: present
+  with_items:
+    - { pkgname: "golang" }
+  delegate_to: localhost
+  run_once: true
+
+- name: download sriov cni git repo
+  become: false
+  delegate_to: localhost
+  git:
+    repo: "https://github.com/k8snetworkplumbingwg/sriov-cni"
+    dest: ../build/sriov-cni
+    force: yes
+  run_once: true
+
+- name: build sriov cni
+  become: false
+  delegate_to: localhost
+  args:
+    chdir: ../build/sriov-cni
+  shell: make build
+  run_once: true
+
+  

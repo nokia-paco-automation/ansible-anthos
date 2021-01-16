@@ -1,34 +1,29 @@
 ---    
-  - name: download helm
-    get_url:
-      url: "https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3"
-      dest: ../build/get_helm.sh
-      mode: 0755
+- name: download helm
+  get_url:
+    url: "https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3"
+    dest: ../build/get_helm.sh
+    mode: 0755
 
-  - name: install helm
-    shell: ../build/get_helm.sh
+- name: install helm
+  shell: ../build/get_helm.sh
 
-  - name: add helm stable repo
-    community.kubernetes.helm_repository:
-      name: stable
-      repo_url: https://charts.helm.sh/stable
+- name: add helm stable repo
+  community.kubernetes.helm_repository:
+    name: stable
+    repo_url: https://charts.helm.sh/stable
 
-  - name: add helm paco repo
-    community.kubernetes.helm_repository:
-      name: "{{paco_sw.harbor.name}}"
-      repo_url: "{{paco_sw.harbor.url}}"
-      repo_username: "{{paco_sw.harbor.username}}"
-      repo_password: "{{paco_sw.harbor.secret}}"
+- name: add helm paco repo
+  community.kubernetes.helm_repository:
+    name: "{{paco_sw.harbor.name}}"
+    repo_url: "{{paco_sw.harbor.url}}"
+    repo_username: "{{paco_sw.harbor.username}}"
+    repo_password: "{{paco_sw.harbor.secret}}"
 
-  - name: add helm repo
-    shell: helm repo add {{paco_sw.harbor.name}} {{paco_sw.harbor.url}} --username '{{paco_sw.harbor.username}}' --password '{{paco_sw.harbor.secret}}'
+- name: add helm repo
+  shell: helm repo add {{paco_sw.harbor.name}} {{paco_sw.harbor.url}} --username '{{paco_sw.harbor.username}}' --password '{{paco_sw.harbor.secret}}'
 
-  - name: helm repo update
-    shell: helm repo update
+- name: helm repo update
+  shell: helm repo update
   
-  # - name: create charts directory
-  #   file:
-  #     path: charts
-  #     state: directory
-  #     mode: 0755
       

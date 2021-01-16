@@ -1,0 +1,24 @@
+- name: Create a directory if it does not exist
+  file:
+    path: /opt/cni/bin
+    state: directory
+
+- name: Download cni binaries
+  unarchive:
+    src: https://github.com/containernetworking/plugins/releases/download/v0.8.6/cni-plugins-linux-amd64-v0.8.6.tgz
+    dest: /opt/cni/bin/
+    remote_src: true
+
+- name: Copy over sriov cni
+  copy:
+    src: sriov
+    dest: /opt/cni/bin/
+
+# building cni is commented since we are not sure this is the way forward
+#- name: build sriov cni
+#  include_tasks: sriov_cni.yaml
+
+- name: Copy over whereabouts config
+  copy:
+    src: whereabouts.conf
+    dest: /etc/cni/net.d/whereabouts.d/

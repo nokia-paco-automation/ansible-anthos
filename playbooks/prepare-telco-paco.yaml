@@ -1,14 +1,23 @@
 - hosts: all
   become: true
+  environment:
+    http_proxy: "{{proxy.http_proxy}}"
+    https_proxy: "{{proxy.https_proxy}}"
+    no_proxy: "{{proxy.no_proxy}}"
   vars:
     pci_dev: []
   pre_tasks:
+  - block:
+    - debug: 
+        msg={{ ansible_run_tags }}
+      tags: always
     - name: validate real time scheduling/kernel
       assert:
         that:
           - "not (install_rt_sched is defined and install_rt_sched and install_rt_kernel is defined and install_rt_kernel)"
         msg: Can't install rt_sched and rt_kernel at the same time.
         quiet: true
+      tags: [cluster, add_cnis, install_pkg, setup_vlans, update_dist, enable_rt_sched, enable_rt_kernel, install_net_driver, sriovdp_cm, grub_config, disable_upgrade]
     - name: validate interface existance
       assert: 
         that: 
@@ -16,36 +25,43 @@
         msg: Interface "{{ item }}" not found.
         quiet: true
       when: "install_net_driver is defined or vlans is defined"
-      with_items: "{{hostvars[inventory_hostname].eth_name}}"          
+      with_items: "{{hostvars[inventory_hostname].eth_name}}" 
+      tags: [cluster, add_cnis, install_pkg, setup_vlans, update_dist, enable_rt_sched, enable_rt_kernel, install_net_driver, sriovdp_cm, grub_config, disable_upgrade]        
     - name: validate virtual functions
       assert:
         that:
           - "not (num_vfio_pci|default(0) + num_igb_uio|default(0) > 0 and not install_net_driver )"
         fail_msg: install_net_driver must be turned on if DPDK is needed.
         quiet: true
+      tags: [cluster, add_cnis, install_pkg, setup_vlans, update_dist, enable_rt_sched, enable_rt_kernel, install_net_driver, sriovdp_cm, grub_config, disable_upgrade]
     - name: validate virtual functions
       assert:
         that:
           - "(num_vfio_pci|default(0)) + (num_igb_uio|default(0)) <= num_sriov_vfs"
         fail_msg: num_vfio_pci ({{ num_vfio_pci|default(0) }}) + num_igb_uio ({{ num_igb_uio|default(0) }}) exceeds num_sriov_vfs ({{ num_sriov_vfs }})
         quiet: true
+      tags: [cluster, add_cnis, install_pkg, setup_vlans, update_dist, enable_rt_sched, enable_rt_kernel, install_net_driver, sriovdp_cm, grub_config, disable_upgrade]
     - name: Get driver installation flag
       stat:
         path: "{{ install_flag }}"
       register: drv_inst
+      tags: [always]
     - name: Get kernel installation flag
       stat:
         path: "{{ kernel_flag }}"
       register: krn_inst
+      tags: [always]
     - set_fact:
         net_mod: "{{hostvars[inventory_hostname]['ansible_' + item]['module'] }}"
         pci_dev: "{{pci_dev}} + {{hostvars[inventory_hostname]['ansible_' + item]['pciid'] }}"
       with_items: "{{hostvars[inventory_hostname].eth_name}}"
+      tags: [cluster, add_cnis, install_pkg, setup_vlans, update_dist, enable_rt_sched, enable_rt_kernel, install_net_driver, sriovdp_cm, grub_config, disable_upgrade]
     - debug: 
         msg={{ net_mod }}
     - debug:
         msg={{ pci_dev }}
     - group_by: key={{ ansible_os_family | lower }}
+      tags: [cluster, add_cnis, install_pkg, setup_vlans, update_dist, enable_rt_sched, enable_rt_kernel, install_net_driver, sriovdp_cm, grub_config, disable_upgrade]
     - name: add modules
       lineinfile:
         create: true
@@ -55,6 +71,7 @@
       with_items:
       - vrf
       - 8021q
+      tags: [cluster, add_cnis, install_pkg, setup_vlans, update_dist, enable_rt_sched, enable_rt_kernel, install_net_driver, sriovdp_cm, grub_config, disable_upgrade]
     - name: load modules
       modprobe:
         name: "{{ item }}"
@@ -62,43 +79,64 @@
       with_items:
       - vrf
       - 8021q
+      tags: [cluster, add_cnis, install_pkg, setup_vlans, update_dist, enable_rt_sched, enable_rt_kernel, install_net_driver, sriovdp_cm, grub_config, disable_upgrade]
   roles:
-    - role: add_cnis
+    - role: build
+      tags: [always]
+    - role: add_multus_cnis
+      tags: [cluster, add_multus_cnis]
     - role: install_pkg
+      tags: [cluster, install_pkg]
     - role: setup_vlans
-      when: "vlans is defined"
+      when: "vlans is defined and ('cluster' or 'setup_vlans' or 'all' in ansible_run_tags)"
+      tags: [cluster, setup_vlans]
     - role: update_dist
-      when: "need_update_dist|default(false)"
+      when: "need_update_dist|default(false) and ('cluster' or 'update_dist' or 'all' in ansible_run_tags)"
+      tags: [cluster, update_dist]
     - role: enable_rt_sched
-      when: "(install_rt_sched|default(false)) and not krn_inst.stat.exists"
+      when: "(install_rt_sched|default(false)) and not krn_inst.stat.exists and ('cluster' or 'drivers' or 'all' in ansible_run_tags)"
+      tags: [cluster, drivers]
     - role: enable_rt_kernel
-      when: "(install_rt_kernel|default(false)) and not krn_inst.stat.exists"
+      when: "(install_rt_kernel|default(false)) and not krn_inst.stat.exists and ('cluster' or 'drivers' or 'all' in ansible_run_tags)"
+      tags: [cluster, drivers]
     - role: install_net_driver
-      when: "(install_net_driver|default(false)) and not drv_inst.stat.exists"
+      tags: [cluster, drivers]
+      when: "(install_net_driver|default(false)) and not drv_inst.stat.exists and ('cluster' or 'drivers' or 'all' in ansible_run_tags)"
     - role: sriovdp_cm
+      tags: [cluster, sriovdp_cm]
     - role: grub_config
       when: "grub_linux_cmd is defined"
+      tags: [cluster, grub_config]
     - role: disable_upgrade
-      when: "disable_auto_upgrade|default(false)"
+      when: "disable_auto_upgrade|default(false) and ('cluster' or 'disable_upgrade' or 'all' in ansible_run_tags)"
+      tags: [cluster, disable_upgrade]
     - role: k8s-env
+      tags: [cluster, k8s-env]
     - role: kubelet
+      tags: [cluster, kubelet]
 
 - hosts: localhost
+  environment:
+    http_proxy: "{{proxy.http_proxy}}"
+    https_proxy: "{{proxy.https_proxy}}"
+    no_proxy: "{{proxy.no_proxy}}"
   pre_tasks:
     - name: validate sriov file existance
       stat: 
         path: ../build/sriovdp_cm.yaml
       register: stat_result
+      tags: multus
     - name: validate sriov file existance
       assert:
         that:
           - stat_result.stat.exists
         msg: Run ansible-playbook playbooks/prepare.yml first
         quiet: true
+      tags: multus
   roles:
-    - { role: k9s, tags: k9s }
-    - { role: helm, tags: helm }
-    - { role: nfs, tags: nfs }
-    - { role: multus, tags: multus }
-    - { role: whereabouts, tags: whereabouts }
-    - { role: paco/prepare, tags: paco/prepare}
+    - { role: k9s, tags: [k8sapps, k9s ]}
+    - { role: helm, tags: [k8sapps, helm] }
+    - { role: nfs, tags: [k8sapps, nfs] }
+    - { role: multus, tags: [k8sapps, multus] }
+    - { role: whereabouts, tags: [k8sapps, whereabouts] }
+    - { role: paco/prepare, tags: [k8sapps, pacoprepare]}

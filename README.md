@@ -2,6 +2,20 @@
 
 This project automates the deployment of google anthos and nokia packet core.
 
+## prerequisites
+
+to support ansible install the following modules
+
+```
+sudo apt-get install python3-pip python3-venv -y
+python3 -m venv ~/venv
+source ~/venv/bin/activate
+pip3 install ansible
+pip3 install netaddr
+ansible-galaxy collection install community.kubernetes
+ansible-galaxy collection install ansible.netcommon 
+```
+
 ## create a configuration file for the deployment
 
 to be detailed

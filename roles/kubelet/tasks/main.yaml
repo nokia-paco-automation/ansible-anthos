@@ -7,7 +7,7 @@
       dest: ../build/kubelet-config-1.18.yaml
     delegate_to: localhost
   
-  - name: apply kubeket configuration to the cluster
+  - name: apply kubelet configuration to the cluster
     become: false
     run_once: true
     shell: kubectl apply -f ../build/kubelet-config-1.18.yaml
