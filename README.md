@@ -1,10 +1,10 @@
 # ansible anthos
 
-This project automates the deployment of google anthos and nokia packet core.
+This project automates the deployment of Google anthos and Nokia packet core.
 
 ## prerequisites
 
-to support ansible install the following modules
+To support ansible install the following modules should be installed
 
 ```
 sudo apt-get install python3-pip python3-venv -y
@@ -194,12 +194,12 @@ The inventory file consists of 2 main sections, one section for the variables fo
 
 - vars section: lists the environment, storage, network, application parameters that are relevant for the deployment
     - proxy: defines the proxy parameters used in your environment, no proxy excludes the proxy for certain ip addresses, domain names. If proxies are used ensure you excludes the kube-api ip address
-    - anthos_dir: defines directory that is used for the anthos cluster deployment
-    - project_id: defines google project id that is used for the deployment
-    - cluster_name: defines cluster name that is used for the google cluster
-    - ansible_user: defines user that is used to execute the playbook
-    - ansible_ssh_private_key_file: defines keyfile that is used by ansible
-    - ansible_ssh_extra_args: defines extra ssh parameters
+    - anthos_dir: defines the directory that is used for the anthos cluster deployment
+    - project_id: defines the google project id that is used for the deployment
+    - cluster_name: defines the cluster name that is used for the google cluster
+    - ansible_user: defines the user that is used to execute the playbook
+    - ansible_ssh_private_key_file: defines the keyfile that is used by ansible
+    - ansible_ssh_extra_args: defines the extra ssh parameters
     - need_update_dist: boolean, defines if the linux os need to be updates
     - install_rt_sched: boolean, defines if a realtime scheduler is needed for the app
     - install_net_driver: boolean, defines if the net drivers, like sriov, dpdk need to be installed.
@@ -208,25 +208,25 @@ The inventory file consists of 2 main sections, one section for the variables fo
         - nfs_mount: defines the drive that nfs server exports
         - csi: right now we support nfs-csi, could be updattes in the future
     - underlay_networks: defines the parameters for the underlay
-        - itfce_cidr: defines cidr used for the underlay
+        - itfce_cidr: defines the cidr used for the underlay
         - vlan: defines vlan that is used for the underlay
     - cni_networks: defines the parameters for the cni network
-        - pod_cidr: cidr used for the pod network
-        - svc_cidr: cidr used for the svc network
+        - pod_cidr: defines the cidr used for the pod network
+        - svc_cidr: defines the cidr used for the svc network
     - multus_networks: defines the parameters for the multus networks
-        - ipvlan_name: name of the ipvlan interface
+        - ipvlan_name: defines the name of the ipvlan interface
         - multus network names with:
             - vlan: [a1,b1,c1] -> first paramater (a1) is used for ipvlan, 2nd/3rd parameter (b1,c1) is used for sriov interfaces
             - itfce_cidr: [a2,b2,c2] -> first paramater (a2) is used for ipvlan cidr, 2nd/3rd parameter (b2,c2) is used for sriov cidr
     - paco_sw: defines the parameters for packet core sw, like harbor, and paco applications.
         - harbor:
-            - name: defines name of the harbor
-            - url: defines url of the harbor charts
-            - server: defines server domain or ip address
-            - image_dir: defines directory where images are stored on the harbor
-            - email: defines harbor email address
-            - username: defines username to access the harbor
-            - secret: defines secret to access the harbor
+            - name: defines the name of the harbor
+            - url: defines the url of the harbor charts
+            - server: defines the server domain or ip address
+            - image_dir: defines the directory where images are stored on the harbor
+            - email: defines the harbor email address
+            - username: defines the username to access the harbor
+            - secret: defines the secret to access the harbor
         - elements: list that defines which application that the playbook will install
         - per application parameters
             - multus: defines how many multus networks will be used for the application
@@ -235,7 +235,7 @@ The inventory file consists of 2 main sections, one section for the variables fo
                 - tag: defines the version of the sw 
                 - memory: defines the required memory for the pod 
                 - nodeSelector: defines affinity rules for the pod
-                - enable: defines if the pos is needed for the installation (0: disabled, 1: enabled)
+                - enable: defines if the pod is needed for the installation (0: disabled, 1: enabled)
             - network: defines the type of network the application uses, like sriov, ipvlan, etc
             - nat: defines if nat is enabled for the dataplane, used for gi, n6 interface
 
