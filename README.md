@@ -255,20 +255,20 @@ The inventory file consists of 2 main sections, one section for the variables fo
 4. Install gcloud + login to gcloud
 
 ```
-ansible-playbook playbook/install-gcloud.yaml
+ansible-playbook playbooks/install-gcloud.yaml
 login to gcloud with gcloud init
 ```
 
 5. Install Anthos baremetal
 
 ```
-ansible-playbook playbook/install-anthosbm.yaml
+ansible-playbook playbooks/install-anthosbm.yaml
 ```
 
 6. prepare telco paco deployment
 
 ```
-ansible-playbook playbook/prepare-telco-paco.yaml
+ansible-playbook playbooks/prepare-telco-paco.yaml
 ```
 
 Once all of this is successfull you can install the packet core applications.
