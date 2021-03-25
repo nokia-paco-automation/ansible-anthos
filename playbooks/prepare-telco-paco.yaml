@@ -18,15 +18,51 @@
         msg: Can't install rt_sched and rt_kernel at the same time.
         quiet: true
       tags: [cluster, add_cnis, install_pkg, setup_vlans, update_dist, enable_rt_sched, enable_rt_kernel, install_net_driver, sriovdp_cm, grub_config, disable_upgrade]
-    - name: validate interface existance
-      assert: 
-        that: 
-          - "{{ 'ansible_' + item in hostvars[inventory_hostname] }}"
-        msg: Interface "{{ item }}" not found.
-        quiet: true
-      when: "install_net_driver is defined or vlans is defined"
-      with_items: "{{hostvars[inventory_hostname].eth_name}}" 
-      tags: [cluster, add_cnis, install_pkg, setup_vlans, update_dist, enable_rt_sched, enable_rt_kernel, install_net_driver, sriovdp_cm, grub_config, disable_upgrade]        
+    - name: set_facts bond_names
+      set_fact: 
+        bond_names: "{{bond_names + [item.name]}}"
+      with_items: "{{hostvars[inventory_hostname].interfaces}}"
+      tags: always
+    - name: set_facts eth_names, validate interface existance
+      set_fact: 
+        eth_names: "{{eth_names}} + {{item.eth_name}}"
+      with_items: "{{hostvars[inventory_hostname].interfaces}}"
+      tags: always
+    - name: set_facts sriov_bool
+      set_fact: 
+        sriov_bool: "{{sriov_bool + [item.sriov]}}"
+      with_items: "{{hostvars[inventory_hostname].interfaces}}"
+      tags: always
+    - name: set_facts ipvlan_bool
+      set_fact: 
+        ipvlan_bool: "{{ipvlan_bool + [item.ipvlan]}}"
+      with_items: "{{hostvars[inventory_hostname].interfaces}}"
+      tags: always
+    - name: print bond_names
+      ansible.builtin.debug:
+        msg: "{{bond_names}}"
+      tags: always
+    - name: print eth_names
+      ansible.builtin.debug:
+        msg: "{{eth_names}}"
+      tags: always
+    - name: print sriov_bool
+      ansible.builtin.debug:
+        msg: "{{sriov_bool}}"
+      tags: always
+    - name: print ipvlan_bool
+      ansible.builtin.debug:
+        msg: "{{ipvlan_bool}}"
+      tags: always
+    # - name: validate interface existance
+    #   assert: 
+    #     that: 
+    #       - "{{ 'ansible_' + item.eth_name in hostvars[inventory_hostname] }}"
+    #     msg: Interface "{{ item.eth_name }}" not found.
+    #     quiet: true
+    #   when: "install_net_driver is defined or vlans is defined"
+    #   loop: "{{hostvars[inventory_hostname].interfaces"
+    #   tags: [cluster, add_cnis, install_pkg, setup_vlans, update_dist, enable_rt_sched, enable_rt_kernel, install_net_driver, sriovdp_cm, grub_config, disable_upgrade]        
     - name: validate virtual functions
       assert:
         that:
@@ -54,8 +90,13 @@
     - set_fact:
         net_mod: "{{hostvars[inventory_hostname]['ansible_' + item]['module'] }}"
         pci_dev: "{{pci_dev}} + {{hostvars[inventory_hostname]['ansible_' + item]['pciid'] }}"
-      with_items: "{{hostvars[inventory_hostname].eth_name}}"
+      with_items: "{{eth_names}}"
       tags: [cluster, add_cnis, install_pkg, setup_vlans, update_dist, enable_rt_sched, enable_rt_kernel, install_net_driver, sriovdp_cm, grub_config, disable_upgrade]
+    # - set_fact:
+    #     net_mod: "{{hostvars[inventory_hostname]['ansible_' + item]['module'] }}"
+    #     pci_dev: "{{pci_dev}} + {{hostvars[inventory_hostname]['ansible_' + item]['pciid'] }}"
+    #   with_items: "{{hostvars[inventory_hostname].eth_name}}"
+    #   tags: [cluster, add_cnis, install_pkg, setup_vlans, update_dist, enable_rt_sched, enable_rt_kernel, install_net_driver, sriovdp_cm, grub_config, disable_upgrade]
     - debug: 
         msg={{ net_mod }}
     - debug:
@@ -88,7 +129,7 @@
     - role: install_pkg
       tags: [cluster, install_pkg]
     - role: setup_vlans
-      when: "vlans is defined and ('cluster' or 'setup_vlans' or 'all' in ansible_run_tags)"
+      when: "('cluster' or 'setup_vlans' or 'all' in ansible_run_tags)"
       tags: [cluster, setup_vlans]
     - role: update_dist
       when: "need_update_dist|default(false) and ('cluster' or 'update_dist' or 'all' in ansible_run_tags)"

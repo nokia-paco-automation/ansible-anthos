@@ -58,19 +58,19 @@ awsSideCar:
   imagePullPolicy: Always
 multus:
   lmg:
-    numDevices: {{ hostvars['worker0']['eth_name']|length * paco_sw.upf.multus }}
+    numDevices: {{ eth_names|length * paco_sw.upf.multus }}
     netNames:
-{% for pf in (hostvars['worker0']['eth_name']) %}
+{% for pf in (eth_names) %}
     - hostdevice-net-tor{{loop.index}}-int
     - hostdevice-net-tor{{loop.index}}-ext
     - hostdevice-net-tor{{loop.index}}-n6
 {% endfor %}
   llb:
-    numDevices: {{ hostvars['worker0']['eth_name']|length * 3 * paco_sw.upf.llb.enable }}
+    numDevices: {{ eth_names|length * 3 * paco_sw.upf.llb.enable }}
     netNames:
   resourceName: intel.com/intel_sriov_netdevice
   attachDef:
-{% for pf in (hostvars['worker0']['eth_name']) %}  
+{% for pf in (eth_names) %}  
   - name: hostdevice-net-tor{{loop.index}}-int
     cniVersion: 0.3.1
     vlan: {{ multus_networks.multus_3gpp_internal.vlan[loop.index]}}
@@ -109,7 +109,7 @@ resources:
     cpu: {{ paco_sw.upf.lmg.cpu}}
     memory: {{ paco_sw.upf.lmg.memory}}
     multus:
-{% for pf in (hostvars['worker0']['eth_name']) %}  
+{% for pf in (eth_names) %}  
     - resourceName: gke/sriov_iavf_{{ loop.index }}
       numDevices: {{ paco_sw.upf.multus }}
 {% endfor %}
@@ -118,7 +118,7 @@ resources:
     cpu: {{ paco_sw.upf.llb.cpu}}
     memory: {{ paco_sw.upf.llb.memory}}
     multus:
-{% for pf in (hostvars['worker0']['eth_name']) %}  
+{% for pf in (eth_names) %}  
     - resourceName: gke/sriov_iavf_{{ loop.index }}
       numDevices: {{ paco_sw.upf.multus * paco_sw.upf.llb.enable }}
 {% endfor %}
@@ -163,7 +163,7 @@ isa:
     routerId: 2
 peers:
   smf:
-    ip: {{ multus_networks.multus_3gpp_internal.itfce_cidr[1] | ansible.netcommon.nthhost(60) }}
+    ip: {{ multus_networks.multus_3gpp_internal.sriov_cidr[1] | ansible.netcommon.nthhost(60) }}
     interface: sigRefPointIf 
 plmn:
 - mcc: "234"
@@ -172,13 +172,13 @@ uuid: a72d6347-190c-49d8-8ad4-bda4ed3018ed
 network:
   interface:
   - name: sigRefPointIf
-    ip: {{ multus_networks.multus_3gpp_internal.itfce_cidr[1] | ansible.netcommon.nthhost(70) }}
-    subnet: {{ multus_networks.multus_3gpp_internal.itfce_cidr[1] | ansible.netcommon.ipaddr('prefix') }}
+    ip: {{ multus_networks.multus_3gpp_internal.sriov_cidr[1] | ansible.netcommon.nthhost(70) }}
+    subnet: {{ multus_networks.multus_3gpp_internal.sriov_cidr[1] | ansible.netcommon.ipaddr('prefix') }}
     port: 1/2/1
     bfd: false
   - name: sigExt
-    ip: {{ multus_networks.multus_3gpp_external.itfce_cidr[1] | ansible.netcommon.nthhost(70) }}
-    subnet: {{ multus_networks.multus_3gpp_internal.itfce_cidr[1] | ansible.netcommon.ipaddr('prefix') }}
+    ip: {{ multus_networks.multus_3gpp_external.sriov_cidr[1] | ansible.netcommon.nthhost(70) }}
+    subnet: {{ multus_networks.multus_3gpp_internal.sriov_cidr[1] | ansible.netcommon.ipaddr('prefix') }}
     port: 1/2/2
     bfd: false
   - name: system
@@ -189,7 +189,7 @@ network:
   staticRoute:
   - subnet: 0.0.0.0/0
     nextHop:
-    - {{ multus_networks.multus_3gpp_external.itfce_cidr[1] | ansible.netcommon.nthhost(1) }}
+    - {{ multus_networks.multus_3gpp_external.sriov_cidr[1] | ansible.netcommon.nthhost(1) }}
     bfd: false
   bgp:
 apn:
@@ -210,18 +210,18 @@ vprn:
 - id: 2
   interface:
   - name: sgi
-    ip: {{ multus_networks.multus_gi_n6.itfce_cidr[1] | ansible.netcommon.nthhost(70) }}
-    subnet: {{ multus_networks.multus_gi_n6.itfce_cidr[1] | ansible.netcommon.ipaddr('prefix') }}
+    ip: {{ multus_networks.multus_gi_n6.sriov_cidr[1] | ansible.netcommon.nthhost(70) }}
+    subnet: {{ multus_networks.multus_gi_n6.sriov_cidr[1] | ansible.netcommon.ipaddr('prefix') }}
     sap: 1/2/3
     bfd: false
   nat:
     type: outside
     addressRange:
-      start: {{ multus_networks.multus_gi_n6.itfce_cidr[1] | ansible.netcommon.nthhost(71) }}
-      end: {{ multus_networks.multus_gi_n6.itfce_cidr[1] | ansible.netcommon.nthhost(71) }}
+      start: {{ multus_networks.multus_gi_n6.sriov_cidr[1] | ansible.netcommon.nthhost(71) }}
+      end: {{ multus_networks.multus_gi_n6.sriov_cidr[1] | ansible.netcommon.nthhost(71) }}
   staticRoute:
   - subnet: 0.0.0.0/0
     nextHop:
-    - {{ multus_networks.multus_gi_n6.itfce_cidr[1] | ansible.netcommon.nthhost(1) }}
+    - {{ multus_networks.multus_gi_n6.sriov_cidr[1] | ansible.netcommon.nthhost(1) }}
     bfd: false
 cnfName: upf

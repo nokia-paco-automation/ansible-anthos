@@ -4,7 +4,7 @@
     https_proxy: "{{proxy.https_proxy}}"
     no_proxy: "{{proxy.no_proxy}}"
   roles:
-    - { role: kubectl, tags: kubectl}
+    #- { role: kubectl, tags: kubectl}
     - { role: bmctl, tags: bmctl}
     - { role: svc-accounts, tags: svc-accounts}
     - { role: anthos, tags: anthos }

@@ -1,4 +1,5 @@
 - name: install  kubectl
+  become: true
   apt:
     name: "{{ item.pkgname }}"
     state: present

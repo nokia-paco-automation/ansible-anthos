@@ -13,5 +13,11 @@
 
 - name: Create VLANs netplan files
   template:
-    src: 100_ipvlan.j2
-    dest: "/etc/netplan/100_ipvaln.j2"
+    src: "{{item}}.j2"
+    dest: "/etc/netplan/{{item}}.yaml"
+  with_items:
+    - 100-ipvlan
+
+- name: netplan apply
+  become: true
+  shell: netplan apply

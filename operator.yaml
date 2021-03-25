@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcn-operator
+  namespace: new-slice-15422
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: mcn-operator
+  template:
+    metadata:
+      labels:
+        name: mcn-operator
+    spec:
+      serviceAccountName: mcn-operator
+      containers:
+        - name: mcn-operator
+          # Replace this with the built image name
+          image: harbor.nokia.cloudpj.be/paco/mcn-operator:apc2
+          ports:
+          - containerPort: 60000
+            name: metrics
+          command:
+          - mcn-operator
+          imagePullPolicy: Always
+          readinessProbe:
+            exec:
+              command:
+                - stat
+                - /tmp/operator-sdk-ready
+            initialDelaySeconds: 4
+            periodSeconds: 10
+            failureThreshold: 1
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "mcn-operator"
+
