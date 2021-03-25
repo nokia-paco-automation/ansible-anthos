@@ -1,0 +1,46 @@
+network:
+  version: 2
+  renderer: networkd
+  bonds:
+{% for bond_name in bond_names %}
+{% if loop.index > 1 %}
+{% if ipvlan_bool[loop.index - 1] == true %}
+    {{bond_name}}:
+      interfaces:
+        - {{ eth_names[ (loop.index-1)*2 ] }}
+        - {{ eth_names[ (loop.index-1)*2+1 ] }}
+      parameters:
+        mode: 802.3ad
+        lacp-rate: fast
+        mii-monitor-interval: 100
+  ethernets:
+    {{ eth_names[ (loop.index-1)*2 ] }}: {}
+    {{ eth_names[ (loop.index-1)*2+1 ] }}: {}
+{% endif %}
+{% endif %}
+{% endfor %}
+  vlans:
+{% for bond_name in bond_names %}
+{% if ipvlan_bool[loop.index - 1] == true %}
+    {{bond_name}}.{{multus_networks.multus_mgmt.ipvlan_vlan}}:
+      id: {{multus_networks.multus_mgmt.ipvlan_vlan}}
+      link: {{bond_name}}
+      dhcp4: false
+    {{bond_name}}.{{multus_networks.multus_internal.ipvlan_vlan}}:
+      id: {{multus_networks.multus_internal.ipvlan_vlan}}
+      link: {{bond_name}}
+      dhcp4: false
+    {{bond_name}}.{{multus_networks.multus_external.ipvlan_vlan}}:
+      id: {{multus_networks.multus_external.ipvlan_vlan}}
+      link: {{bond_name}}
+      dhcp4: false
+    {{bond_name}}.{{multus_networks.multus_sba.ipvlan_vlan}}:
+      id: {{multus_networks.multus_sba.ipvlan_vlan}}
+      link: {{bond_name}}
+      dhcp4: false
+    {{bond_name}}.{{multus_networks.multus_internet.ipvlan_vlan}}:
+      id: {{multus_networks.multus_internet.ipvlan_vlan}}
+      link: {{bond_name}}
+      dhcp4: false
+{% endif %}
+{% endfor %}

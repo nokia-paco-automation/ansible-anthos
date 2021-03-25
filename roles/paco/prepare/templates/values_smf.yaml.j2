@@ -58,9 +58,9 @@ awsSideCar:
   imagePullPolicy: IfNotPresent
 multus:
   lmg:
-    numDevices: {{ hostvars['worker0']['eth_name']|length * paco_sw.smf.multus }}
+    numDevices: {{ eth_names|length * paco_sw.smf.multus }}
     netNames:
-{% for pf in (hostvars['worker0']['eth_name']) %}  
+{% for pf in (eth_names) %}  
     - hostdevice-net-tor{{loop.index}}-int
     - hostdevice-net-tor{{loop.index}}-sba
 {% endfor %}
@@ -69,7 +69,7 @@ multus:
     netNames:
   resourceName: intel.com/intel_sriov_netdevice
   attachDef:
-{% for pf in (hostvars['worker0']['eth_name']) %} 
+{% for pf in (eth_names) %} 
   - name: hostdevice-net-tor{{loop.index}}-int
     cniVersion: 0.3.1
     vlan: {{ multus_networks.multus_3gpp_internal.vlan[loop.index]}}
@@ -103,7 +103,7 @@ resources:
     cpu: {{ paco_sw.smf.lmg.cpu}}
     memory: {{ paco_sw.smf.lmg.memory}}
     multus:
-{% for pf in (hostvars['worker0']['eth_name']) %}  
+{% for pf in (eth_names) %}  
     - resourceName: gke/sriov_iavf_{{ loop.index }}
       numDevices: {{ paco_sw.smf.multus }}
 {% endfor %}
@@ -112,7 +112,7 @@ resources:
     cpu: {{ paco_sw.smf.llb.cpu}}
     memory: {{ paco_sw.smf.llb.memory}}
     multus:
-{% for pf in (hostvars['worker0']['eth_name']) %}  
+{% for pf in (eth_names) %}  
     - resourceName: gke/sriov_iavf_{{ loop.index }}
       numDevices: {{ paco_sw.upf.multus * paco_sw.upf.llb.enable }}
 {% endfor %}
@@ -159,7 +159,7 @@ peers:
 #    interface: sigRefPointIf
   upf:
     peerList:
-    - ip: {{ multus_networks.multus_3gpp_internal.itfce_cidr[1] | ansible.netcommon.nthhost(70) }}
+    - ip: {{ multus_networks.multus_3gpp_internal.sriov_cidr[1] | ansible.netcommon.nthhost(70) }}
       apn:
       - name: demo.nokia.mnc100.mcc234.gprs
         uepool:
@@ -167,7 +167,7 @@ peers:
           ipv4Prefix: {{ multus_networks.multus_gi_n6.pool_cidr | ansible.netcommon.ipaddr('net') }}
     interface: sigRefPointIf
   amf:
-     ip: {{ multus_networks.multus_3gpp_external.itfce_cidr[1] | ansible.netcommon.nthhost(102) }}
+     ip: {{ multus_networks.multus_3gpp_external.sriov_cidr[1] | ansible.netcommon.nthhost(102) }}
      port: 8080
      uuid: 20e0b0c3-82e1-44a4-82ab-a065d80a3b93 
      interface: sigSba
@@ -186,13 +186,13 @@ uuid: 842887ce-329d-4add-9a1c-e7dd03faa00e
 network:
   interface:
   - name: sigRefPointIf
-    ip: {{ multus_networks.multus_3gpp_internal.itfce_cidr[1] | ansible.netcommon.nthhost(60) }}
-    subnet: {{ multus_networks.multus_3gpp_internal.itfce_cidr[1] | ansible.netcommon.ipaddr('prefix') }}
+    ip: {{ multus_networks.multus_3gpp_internal.sriov_cidr[1] | ansible.netcommon.nthhost(60) }}
+    subnet: {{ multus_networks.multus_3gpp_internal.sriov_cidr[1] | ansible.netcommon.ipaddr('prefix') }}
     port: 1/2/1
     bfd: false
   - name: sigSba
-    ip: {{ multus_networks.multus_3gpp_sba.itfce_cidr[1] | ansible.netcommon.nthhost(60) }}
-    subnet: {{ multus_networks.multus_3gpp_sba.itfce_cidr[1] | ansible.netcommon.ipaddr('prefix') }}
+    ip: {{ multus_networks.multus_3gpp_sba.sriov_cidr[1] | ansible.netcommon.nthhost(60) }}
+    subnet: {{ multus_networks.multus_3gpp_sba.sriov_cidr[1] | ansible.netcommon.ipaddr('prefix') }}
     port: 1/2/2
     bfd: false
   - name: system
@@ -203,7 +203,7 @@ network:
   staticRoute:
   - subnet: 0.0.0.0/0
     nextHop:
-    - {{ multus_networks.multus_3gpp_sba.itfce_cidr[1] | ansible.netcommon.nthhost(1) }}
+    - {{ multus_networks.multus_3gpp_sba.sriov_cidr[1] | ansible.netcommon.nthhost(1) }}
     bfd: false
   bgp:
 apn:

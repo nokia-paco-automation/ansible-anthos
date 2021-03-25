@@ -13,6 +13,7 @@
   copy:
     src: sriov
     dest: /opt/cni/bin/
+    mode: 0755
 
 # building cni is commented since we are not sure this is the way forward
 #- name: build sriov cni

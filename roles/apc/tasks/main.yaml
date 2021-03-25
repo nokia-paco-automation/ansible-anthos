@@ -1,0 +1,23 @@
+---
+- name: create directory
+  file:
+    path: /opt/ucore
+    state: directory
+
+- name: create directory
+  file:
+    path: /data/ps0/agent
+    state: directory
+
+- name: Copy agenet_livenes.sh
+  copy:
+    src: agent_liveness.sh
+    dest: /data/ps0/agent//agent_liveness.sh
+    mode: "0755"
+
+- name: Load modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  with_items:
+  - sctp

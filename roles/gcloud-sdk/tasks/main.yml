@@ -1,5 +1,14 @@
 - name: add the Cloud SDK distribution URI as a package source
-  shell: echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/apt/sources.list.d/google-cloud-sdk.list
+    line: deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main
+    create: yes
+
+- name: sudo add-apt-repository ppa:ansible/ansible
+  become: true
+  shell: add-apt-repository ppa:ansible/ansible
+  #shell: echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
 
 - name: install apt-transport-https packages
   become: true

@@ -7,7 +7,8 @@ data:
   config.json: |
     {
         "resourceList": [
-{% for pf in (hostvars[inventory_hostname]['eth_name']) %}
+{% for pf in (eth_names) %}
+{% if sriov_bool[((loop.index-1)/2)|round(0, 'floor')|int] == true %}
             {
                 "resourceName": "sriov_iavf_{{ loop.index }}",
                 "resourcePrefix": "gke",
@@ -17,6 +18,7 @@ data:
             }
 {% if not loop.last %}
             ,
+{% endif %}
 {% endif %}
 {% endfor %}
         ]
