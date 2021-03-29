@@ -5,7 +5,7 @@
     mode: 0755
 
 - name: download bmctl
-  shell: gsutil cp gs://anthos-baremetal-release/bmctl/1.6.0/linux-amd64/bmctl ~/{{anthos_dir}}/bmctl
+  shell: gsutil cp gs://anthos-baremetal-release/bmctl/{{anthos_version}}/linux-amd64/bmctl ~/{{anthos_dir}}/bmctl
 
 - name: change permission bmctl
   file:
