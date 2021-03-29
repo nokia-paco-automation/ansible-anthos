@@ -13,15 +13,15 @@
     dest: ~/{{anthos_dir}}/bmctl-workspace/{{cluster_name}}/{{cluster_name}}.yaml
     mode: 0644
 
-- name: create anthos bm
-  shell: ./bmctl create cluster -c {{ cluster_name}}
-  args:
-    chdir: ~/{{anthos_dir}}
-  register: response
-- debug:
-    msg: "{{response}}"
+# - name: create anthos bm
+#   shell: ./bmctl create cluster -c {{ cluster_name}}
+#   args:
+#     chdir: ~/{{anthos_dir}}
+#   register: response
+# - debug:
+#     msg: "{{response}}"
 
-- name: kubectl get nodes
-  shell: kubectl --kubeconfig bmctl-workspace/{{cluster_name}}/{{cluster_name}}-kubeconfig get nodes
-  args:
-    chdir: ~/{{anthos_dir}}
+# - name: kubectl get nodes
+#   shell: kubectl --kubeconfig bmctl-workspace/{{cluster_name}}/{{cluster_name}}-kubeconfig get nodes
+#   args:
+#     chdir: ~/{{anthos_dir}}

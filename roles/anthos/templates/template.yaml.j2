@@ -27,7 +27,7 @@ spec:
   #   4) standalone: to create a cluster that manages itself, runs user workloads, but does not manage other clusters.
   type: hybrid
   # Anthos cluster version.
-  anthosBareMetalVersion: 1.6.0
+  anthosBareMetalVersion: {{anthos_version}}
   # GKE connect configuration
   gkeConnect:
     projectID: {{project_id}}
@@ -99,7 +99,7 @@ spec:
     # Cloud project for logs and metrics.
     projectID: {{project_id}}
     # Cloud location for logs and metrics.
-    location: us-central1
+    location: {{region}}
     # Whether collection of application logs/metrics should be enabled (in addition to
     # collection of system logs/metrics which correspond to system components such as
     # Kubernetes control plane or cluster management agents).
@@ -179,5 +179,6 @@ metadata:
 spec:
   clusterName: {{cluster_name}}
   nodes:
-  - address: {{ hostvars['worker0']['ansible_host'] }}
-  - address: {{ hostvars['worker1']['ansible_host'] }}
+{% for workers in groups['workers'] %}
+  - address: {{ hostvars[workers]['ansible_host'] }}
+{% endfor  %}
