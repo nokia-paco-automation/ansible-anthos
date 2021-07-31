@@ -1,0 +1,97 @@
+---
+- name: Copy /etc/sysctl.d/10-k8s-worker-tweaks.conf
+  become: true
+  lineinfile:
+      create: true
+      path: /etc/sysctl.d/10-k8s-worker-tweaks.conf
+      line: "{{ item }}"
+      insertafter: EOF
+  with_items:
+    - "net.core.rmem_default = 1048576"
+    - "net.core.wmem_default = 1048576"
+    - "net.core.rmem_max=4194304"
+    - "net.core.wmem_max=4194304"
+    - "net.ipv4.conf.all.accept_redirects = 0"
+    - "net.ipv4.conf.all.send_redirects = 0"
+    - "net.ipv4.conf.default.rp_filter = 0"
+    - "net.ipv4.conf.default.accept_source_route = 0"
+    - "net.ipv4.conf.default.send_redirects = 0"
+    - "net.ipv4.icmp_ignore_bogus_error_responses = 1"
+    - "net.ipv4.conf.all.rp_filter = 0"
+    - "net.ipv6.conf.all.forwarding = 1"
+    - "net.ipv4.tcp_rmem = 187380 655360 6291456"
+    - "net.ipv4.udp_rmem_min = 1048576"
+    - "net.ipv4.udp_wmem_min = 1048576"
+    - "kernel.sched_rt_runtime_us  = -1"
+      # - "{{ extra_worker_tweaks_sysctl }}"
+
+- name: Reload sysctl
+  become: true
+  shell: sysctl -p
+
+- name: Create cpupower service
+  become: true
+  copy:
+    src: cpupower.service
+    dest: /etc/systemd/system/cpupower.service
+
+#- name: Enable cpupower service
+#  become: true
+#  systemd: 
+#    state: started
+#    enabled: yes
+#    daemon_reload: yes
+#    name: cpupower.service
+
+- name: Install additional kernel Package
+  when: ansible_os_family == "RedHat"
+  ansible.builtin.package:
+    name: kernel-modules-extra
+    state: present
+
+- name: Delete sctp blacklists
+  become: true
+  file:
+    state: absent
+    path: "{{ item }}"
+  with_items:
+    - /etc/modprobe.d/sctp-blacklist.conf
+    - /etc/modprobe.d/sctp_diag-blacklist.conf
+
+- name: Add kernel modules
+  become: true    
+  lineinfile:
+        create: true
+        path: /etc/modules-load.d/10-k8s-worker-tweaks.conf
+        line: "{{ item }}"
+        insertafter: EOF
+  with_items:
+    - vrf
+    - 8021q
+    - xfrm4_tunnel
+    - ipcomp
+      #    - "{{ extra_worker_tweaks_kernelmods }}"
+
+- name: Load kernel modules
+  become: true
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - vrf
+    - xfrm4_tunnel
+    - ipcomp
+      #    - "{{ extra_worker_tweaks_kernelmods }}"
+
+- name: Install IPSec Package
+  when: ansible_os_family == "RedHat"
+  ansible.builtin.package:
+    name: libreswan
+    state: present
+
+- name: Enable huge pages
+  become: true
+  shell: grubby --update-kernel=ALL --args="transparent_hugepage=madvise default_hugepagesz=1G hugepagesz=1G hugepages=20"
+ 
+- name: Reboot worker to apply grub
+  reboot:

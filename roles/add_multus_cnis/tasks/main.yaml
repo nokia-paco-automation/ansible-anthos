@@ -5,7 +5,7 @@
 
 - name: Download cni binaries
   unarchive:
-    src: https://github.com/containernetworking/plugins/releases/download/v0.8.6/cni-plugins-linux-amd64-v0.8.6.tgz
+    src: https://github.com/containernetworking/plugins/releases/download/v0.9.1/cni-plugins-linux-amd64-v0.9.1.tgz
     dest: /opt/cni/bin/
     remote_src: true
 

@@ -6,7 +6,7 @@
     src: "{{ item }}.j2"
     dest: "../build/{{ item }}"
   with_items:
-    - values_amf.yaml
-    - values_smf.yaml
-    - values_upf.yaml
+#    - values_amf.yaml
+#    - values_smf.yaml
+    - values_upfscale.yaml
 

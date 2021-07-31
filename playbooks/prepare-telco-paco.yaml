@@ -128,9 +128,9 @@
       tags: [cluster, add_multus_cnis]
     - role: install_pkg
       tags: [cluster, install_pkg]
-    - role: setup_vlans
-      when: "('cluster' or 'setup_vlans' or 'all' in ansible_run_tags)"
-      tags: [cluster, setup_vlans]
+      #- role: setup_vlans
+      #when: "create_vlans|default(false) and ('cluster' or 'setup_vlans' or 'all' in ansible_run_tags)"
+      #tags: [cluster, setup_vlans]
     - role: update_dist
       when: "need_update_dist|default(false) and ('cluster' or 'update_dist' or 'all' in ansible_run_tags)"
       tags: [cluster, update_dist]
@@ -142,20 +142,19 @@
       tags: [cluster, drivers]
     - role: install_net_driver
       tags: [cluster, drivers]
-      when: "(install_net_driver|default(false)) and not drv_inst.stat.exists and ('cluster' or 'drivers' or 'all' in ansible_run_tags)"
+      #when: "(install_net_driver|default(false)) and not drv_inst.stat.exists and ('cluster' or 'drivers' or 'all' in ansible_run_tags)"
     - role: sriovdp_cm
       tags: [cluster, sriovdp_cm]
-    - role: grub_config
-      when: "grub_linux_cmd is defined"
-      tags: [cluster, grub_config]
+      #- role: grub_config
+      # when: "grub_linux_cmd is defined"
+      #tags: [cluster, grub_config]
     - role: disable_upgrade
       when: "disable_auto_upgrade|default(false) and ('cluster' or 'disable_upgrade' or 'all' in ansible_run_tags)"
       tags: [cluster, disable_upgrade]
-    - role: k8s-env
-      tags: [cluster, k8s-env]
     - role: kubelet
       tags: [cluster, kubelet]
-
+    - role: worker-tweaks
+      tags: [cluster, workertweaks]
 - hosts: localhost
   environment:
     http_proxy: "{{proxy.http_proxy}}"
@@ -175,7 +174,8 @@
         quiet: true
       tags: multus
   roles:
-    - { role: k9s, tags: [k8sapps, k9s ]}
+   #- { role: k8s-env, tags: [cluster, k8s-env]}
+   #- { role: k9s, tags: [k8sapps, k9s ]}
     - { role: helm, tags: [k8sapps, helm] }
     - { role: nfs, tags: [k8sapps, nfs] }
     - { role: multus, tags: [k8sapps, multus] }

@@ -6,21 +6,19 @@
       path: ~/.kube
       state: directory
     delegate_to: localhost
-      
   - name: copy kubeconfig
     become: false
     run_once: true
     copy:
-      src: "/home/{{ansible_user}}/baremetal/bmctl-workspace/{{cluster_name}}/{{cluster_name}}-kubeconfig"
+      src: "/home/{{ ansible_user }}/baremetal/bmctl-workspace/{{ cluster_name }}/{{ cluster_name }}-kubeconfig"
       dest: ~/.kube/config
       remote_src: yes
     delegate_to: localhost
-
   - name: adding path in ~/.bashrc for KUBECONFIG
     become: false
     run_once: true
-    lineinfile: 
-      path: ~/.bashrc 
+    lineinfile:
+      path: ~/.bashrc
       line: "export KUBECONFIG=$HOME/.kube/config"
     delegate_to: localhost
 
@@ -28,7 +26,7 @@
     become: false
     run_once: true
     lineinfile:
-      path: ~/.bashrc 
+      path: ~/.bashrc
       line: "source <(kubectl completion bash)"
     delegate_to: localhost
   

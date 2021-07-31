@@ -1,0 +1,654 @@
+service:
+  loam:
+    telnet:
+      nodePort: 32023
+      port: 2323
+      targetPort: 2323
+    ssh:
+      nodePort: 32221
+      port: 2222
+      targetPort: 2222
+    snmp1:
+      nodePort: 164
+      port: 164
+      targetPort: 164
+  loamA:
+    console:
+      nodePort: 32000
+      port: 2000
+      targetPort: 2000
+  loamB:
+    console:
+      nodePort: 32000
+      port: 2000
+      targetPort: 2000
+  lmg:
+    console:
+      nodePort: 32000
+      port: 2000
+      targetPort: 2000
+  llb:
+    console:
+      nodePort: 32000
+      port: 2000
+      targetPort: 2000
+imagePullSecret: {{paco_sw.harbor.name}}
+image:
+  repository: {{paco_sw.harbor.server}}/{{paco_sw.harbor.image_dir}}
+  name: lmg
+  tag: {{paco_sw.upf.lmg.tag}}
+  pullPolicy: IfNotPresent
+nasc:
+  enable: {{paco_sw.upf.nasc.enable}}
+  imageRepository: {{paco_sw.harbor.server}}/{{paco_sw.harbor.image_dir}}
+  imageName: nasc
+  imageTag: {{paco_sw.upf.nasc.tag}}
+  imagePullPolicy: IfNotPresent
+  configReadInterval: 300
+  scrapeInterval:
+    loam:
+      kciInfo:
+      - name: KCISystemCPM
+        interval: 60
+      kpiInfo:
+      - name: KPIIpReasMda
+        interval: 60
+    lmg:
+      kciInfo:
+      - name: KCISystem
+        interval: 60
+      - name: KCIBearerManagementUpf
+        interval: 60
+      - name: KCIBearerManagementUpfDnn
+        interval: 60
+      - name: KCIDataPlaneMSM
+        interval: 60
+      - name: KCIControlPlaneIpPool
+        interval: 60
+      - name: KCIBearerManagementVprnPool
+        interval: 60
+      kpiInfo:
+      - name: KPIBearerManagementPfcp
+        interval: 60
+      - name: KPIBearerTrafficQci
+        interval: 60
+      - name: KPIBearerTrafficQciArp
+        interval: 60
+      - name: KPIBearerTrafficUpfDnn
+        interval: 60
+      - name: KPIIpReasMda
+        interval: 60
+      - name: KPIPathManagementPFCP
+        interval: 60
+      - name: KPIPathManagementN3
+        interval: 60
+      - name: KPIPathManagementN9
+        interval: 60
+      - name: KPIPfcpSessionProcedureCauseCode
+        interval: 60
+logging:
+  enable: {{paco_sw.upf.logging.enable}}
+  imageRepository: {{paco_sw.harbor.server}}/{{paco_sw.harbor.image_dir}}
+  imageName: lmg
+  imageTag: {{paco_sw.upf.logging.tag}}
+  imagePullPolicy: IfNotPresent
+awsSideCar:
+  enable: {{paco_sw.upf.awsSideCar.enable}}
+  imageRepository: {{paco_sw.harbor.server}}/{{paco_sw.harbor.image_dir}}
+  imageName: aws_sidecar_lmg
+  imageTag: {{paco_sw.upf.awsSideCar.tag}}
+  imagePullPolicy: IfNotPresent
+multus:
+  lmg:
+    numDevices: {{ interfaces[0].eth_name | length * paco_sw.upf.multus }}
+    netNames:
+{% for pf in (interfaces[0].eth_name) %}
+    - {{ interfaces[0].name}}-tor{{loop.index}}-int
+{% endfor %}
+{% for pf in (interfaces[0].eth_name) %}
+    - {{ interfaces[0].name}}-tor{{loop.index}}-ext
+{% endfor %}
+{% for pf in (interfaces[0].eth_name) %}
+    - {{ interfaces[0].name}}-tor{{loop.index}}-n6
+{% endfor %}
+  llb:
+    numDevices: {{ interfaces[0].eth_name | length * paco_sw.upf.multus }}
+    netNames:
+{% for pf in (interfaces[0].eth_name) %}
+    - {{ interfaces[0].name}}-tor{{loop.index}}-int
+{% endfor %}
+{% for pf in (interfaces[0].eth_name) %}
+    - {{ interfaces[0].name}}-tor{{loop.index}}-ext
+{% endfor %}
+{% for pf in (interfaces[0].eth_name) %}
+    - {{ interfaces[0].name}}-tor{{loop.index}}-n6
+{% endfor %}
+  attachDef:
+{% for int in interfaces | list %}
+{% set outer_loop = loop %}
+{% for pf in (interfaces[loop.index-1].eth_name) %}
+  - name: {{interfaces[0].name}}-tor{{loop.index}}-int
+    cniVersion: 0.3.1
+    resourceName: gke/sriov_iavf_{{loop.index + outer_loop.index-1 + outer_loop.index-1}}
+    vlan: {{ multus_networks.multus_internal.sriov_vlan[loop.index -1]}}
+    type: {{ paco_sw.upf.network.type}}
+  - name: {{interfaces[0].name}}-tor{{loop.index}}-ext
+    cniVersion: 0.3.1
+    resourceName: gke/sriov_iavf_{{loop.index + outer_loop.index-1 + outer_loop.index-1}}
+    vlan: {{ multus_networks.multus_external.sriov_vlan[loop.index -1]}}
+    type: {{ paco_sw.upf.network.type}}
+  - name: {{interfaces[0].name}}-tor{{loop.index}}-n6
+    cniVersion: 0.3.1
+    resourceName: gke/sriov_iavf_{{loop.index + outer_loop.index-1 + outer_loop.index-1}}
+    vlan: {{ multus_networks.multus_internet.sriov_vlan[loop.index -1]}}
+    type: {{ paco_sw.upf.network.type}}
+{% endfor %}
+{% endfor %}
+  groFlag: 1
+  dsf:
+    enable: 0
+    numDsfDevices: 1
+  xdp:
+    enable: 0
+  dpdk:
+    enable: 1
+gwConfig: upf
+gwRedundancy:
+  active: 1
+lmgScale:
+  minReplicas: 2
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 90
+llbScale:
+  minReplicas: 2
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 90
+resources:
+  loam:
+    cpu: {{ paco_sw.upf.loam.cpu}}
+    memory: {{ paco_sw.upf.loam.memory}}
+    nodeSelector: {}
+  lmg:
+    cpu: {{ paco_sw.upf.lmg.cpu}}
+    memory: {{ paco_sw.upf.lmg.memory}}
+    hugepages1Gi: {{ paco_sw.upf.lmg.hugepages1Gi}}
+    multus:
+{% for pf in (interfaces[0].eth_name) %} 
+    - resourceName: gke/sriov_iavf_{{ loop.index + 2}}
+      numDevices: {{ paco_sw.upf.multus }}
+{% endfor %}
+    nodeSelector: {}
+  llb:
+    cpu: {{ paco_sw.upf.llb.cpu}}
+    memory: {{ paco_sw.upf.llb.memory}}
+    hugepages1Gi: {{ paco_sw.upf.llb.hugepages1Gi}}
+    multus:
+{% for pf in (interfaces[0].eth_name) %} 
+    - resourceName: gke/sriov_iavf_{{ loop.index }}
+      numDevices: {{ paco_sw.upf.multus }}
+{% endfor %}
+    nodeSelector: {}
+  nasc:
+    cpu: {{ paco_sw.upf.nasc.cpu}}
+    memory: {{ paco_sw.upf.nasc.memory}}
+  logging:
+    cpu: {{ paco_sw.upf.logging.cpu}}
+    memory: {{ paco_sw.upf.logging.memory}}
+  awsSideCar:
+    cpu: {{ paco_sw.upf.awsSideCar.cpu}}
+    memory: {{ paco_sw.upf.awsSideCar.memory}}
+storage:
+#pvCreation to be set to 0 in case Persistent Volume already created
+  pvCreation: 1
+  parentPath: /mnt/glusterfs/
+  pvLogsName: logs-volume-upf
+  pvStorageClass: manual
+  pvLogsClaimName: logs-volume-claim
+  pvSize: 1Gi
+  cfSize: 1Gi
+  cfAInfo:
+  - pvName: upf-cf1-a-volume
+    pvcName: cf1-a-volume-claim
+  - pvName: upf-cf2-a-volume
+    pvcName: cf2-a-volume-claim
+  cfBInfo:
+  - pvName: upf-cf1-b-volume
+    pvcName: cf1-b-volume-claim
+  - pvName: upf-cf2-b-volume
+    pvcName: cf2-b-volume-claim
+rtScheduling:
+  enable: 0
+  cgroupHostPath: /sys/fs/cgroup/cpu,cpuacct/
+loamB:
+  enable: 0
+bootString:
+  ht: 3
+  fswo: 300
+  lmg:
+    cpcores: 6
+    cfp: 1
+  llb:
+    cpcores: 4
+    cfp: 1
+podsecuritypolicy:
+  create: false
+isa:
+  nat:
+    enable: {{ paco_sw.upf.nat.enable }}
+peers:
+#  cdbx:
+#    ip: 10.100.11.9
+#    port: 5679
+#    interface: sx
+  smf:
+    ip: {{ multus_networks.loopbacks.sig_ref_points | ansible.netcommon.nthhost(2) }}
+    interface: sx
+    router: vprn17001
+plmn:
+- mcc: "{{ paco_app.plmn.mcc}}"
+  mnc: "{{ paco_app.plmn.mnc}}"
+uuid: 842887ce-329d-4add-9a1c-e7dd03faa00f
+network:
+  interface:
+  - name: system
+    ip: 10.20.30.40
+    subnet: 32
+    port: system
+    bfd: true
+  staticRoute:
+  bgp:
+  policyOptions:
+    prefixList:
+    - name: n4
+      prefix: {{ multus_networks.multus_internal.loopback | ansible.netcommon.nthhost(1) }}/32
+    - name: group1-s1u-n3
+      prefix: {{ multus_networks.multus_external.loopback | ansible.netcommon.nthhost(1) }}/32
+    - name: group1-n6
+      prefix: {{ multus_networks.multus_internet.loopback | ansible.netcommon.nthhost(1) }}/32
+    community:
+    - name: group1-ext-active
+      tag: "1000:10121"
+    - name: group1-ext-standby
+      tag: "1000:10122"
+    - name: group1-n6-active
+      tag: "1000:10131"
+    - name: group1-n6-standby
+      tag: "1000:10132"
+    policyStatement:
+    - name: export-vprn1012
+      entry:
+      - id: 10
+        from:
+        - prefixlist: group1-s1u-n3
+          activeMG: 1
+        action:
+          addCommunity: group1-ext-active
+      - id: 15
+        from:
+        - prefixlist: group1-s1u-n3
+          activeMG: 2
+        action:
+          addCommunity: group1-ext-standby
+    - name: export-vprn1013
+      entry:
+      - id: 10
+        from:
+        - prefixlist: group1-n6
+          activeMG: 1
+        action:
+          addCommunity: group1-n6-active
+      - id: 15
+        from:
+        - prefixlist: group1-n6
+          activeMG: 2
+        action:
+          addCommunity: group1-n6-standby
+    - name: import-vprn17002
+      entry:
+      - id: 10
+        from:
+        - communityExpression: "[group1-ext-active] OR [group1-ext-standby]"
+    - name: import-vprn17003
+      entry:
+      - id: 10
+        from:
+        - communityExpression: "[group1-n6-active] OR [group1-n6-standby]"
+    - name: export-vprn1011-bgp
+      entry:
+      - id: 10
+        from:
+        - prefixlist: n4
+    - name: export-vprn1012-bgp
+      entry:
+      - id: 10
+        from:
+        - community: group1-ext-active
+        action:
+          nextHop: {{ multus_networks.multus_external.loopback | ansible.netcommon.nthhost(61) }}
+      - id: 15
+        from:
+        - community: group1-ext-standby
+        action:
+          nextHop: {{ multus_networks.multus_external.loopback | ansible.netcommon.nthhost(62) }}
+    - name: export-vprn1013-bgp
+      entry:
+      - id: 10
+        from:
+        - community: group1-n6-active
+        action:
+          nextHop: {{ multus_networks.multus_internet.loopback | ansible.netcommon.nthhost(61) }}
+      - id: 15
+        from:
+        - community: group1-n6-standby
+        action:
+          nextHop: {{ multus_networks.multus_internet.loopback | ansible.netcommon.nthhost(62) }}
+apn:
+- name: demo.nokia.com
+  uepool:
+  - router: vprn1012
+    name: pool1
+uepool:
+- router: vprn1012
+  name: pool1
+  ipv4Prefix: {{ multus_networks.multus_internet.ue_pool_cidr | ansible.netcommon.ipaddr('net') }}
+cnfName: upf
+vprn:
+#####LLB
+#VPRN LLB Internal
+- id: 17001
+  ecmp: 8
+  as: 1000
+  interface:
+{% for pf in range (paco_sw.upf.llb.total) %}
+  - name: llb{{loop.index}}-bond0-tor1-int
+    ip: {{ multus_networks.multus_internal.sriov_cidr[0] | ansible.netcommon.nthhost(32*(loop.index-1)+1) }}
+    subnet: 27
+    sap: {{16 + loop.index}}/1/1
+    bfd: true
+  - name: llb{{loop.index}}-bond0-tor2-int
+    ip: {{ multus_networks.multus_internal.sriov_cidr[1] | ansible.netcommon.nthhost((32*(loop.index-1)+1)) }}
+    subnet: 27
+    sap: {{16 + loop.index}}/1/2
+    bfd: true
+  - name: llb{{loop.index}}-loopback-int
+    ip: {{ multus_networks.multus_internal.loopback | ansible.netcommon.nthhost(50 +loop.index ) }}
+    subnet: 32
+    sap: loopback
+    bfd: false
+{% endfor %}
+  - name: bgp-loopback-int
+    ip: {{ multus_networks.multus_internal.loopback | ansible.netcommon.nthhost(251) }}
+    subnet: 32
+    sap: loopback
+    bfd: false
+  - name: n4
+    ip: {{ multus_networks.multus_internal.loopback | ansible.netcommon.nthhost(52) }}
+    subnet: 32
+    sap: loopback
+    bfd: false
+  staticRoute:
+  - subnet: 0.0.0.0/0
+    nextHop:
+{% for pf in range (paco_sw.upf.llb.total) %}
+    - {{ multus_networks.multus_internal.sriov_cidr[0] | ansible.netcommon.nthhost(32*(loop.index-1)+30) }}
+    - {{ multus_networks.multus_internal.sriov_cidr[1] | ansible.netcommon.nthhost(32*(loop.index-1)+30) }}
+{% endfor %}
+    bfd: true
+  - subnet: {{ multus_networks.multus_internal.loopback | ansible.netcommon.nthhost(252) }}/32
+    nextHop:
+{% for pf in range (paco_sw.upf.llb.total) %}
+    - {{ multus_networks.multus_internal.sriov_cidr[0] | ansible.netcommon.nthhost(32*(loop.index-1)+30) }}
+{% endfor %}
+    bfd: true
+  - subnet: {{ multus_networks.multus_internal.loopback | ansible.netcommon.nthhost(253) }}/32
+    nextHop:
+{% for pf in range (paco_sw.upf.llb.total) %}
+    - {{ multus_networks.multus_internal.sriov_cidr[1] | ansible.netcommon.nthhost(32*(loop.index-1)+30) }}
+{% endfor %}
+    bfd: true
+  bgp:
+  - peerIp: {{ multus_networks.multus_internal.loopback | ansible.netcommon.nthhost(252) }}
+    export: n4_export
+    peerAs: 110010
+    localAddress: {{ multus_networks.multus_internal.loopback | ansible.netcommon.nthhost(251) }}
+    multiHop: 10
+  - peerIp: {{ multus_networks.multus_internal.loopback | ansible.netcommon.nthhost(253) }}
+    export: n4_export
+    peerAs: 110010
+    localAddress: {{ multus_networks.multus_internal.loopback | ansible.netcommon.nthhost(251) }}
+    multiHop: 10
+#VPRN LLB External
+- id: 17002
+  ecmp: 8
+  vrfImport: import-vprn17002
+  as: 1000
+  interface:
+{% for pf in range (paco_sw.upf.llb.total) %}
+  - name: llb{{loop.index}}-bond0-tor1-ext
+    ip: {{ multus_networks.multus_external.sriov_cidr[0] | ansible.netcommon.nthhost(32*(loop.index-1)+1) }}
+    subnet: 27
+    sap: {{16 + loop.index}}/1/3
+    bfd: true
+  - name: llb{{loop.index}}-bond0-tor2-ext
+    ip: {{ multus_networks.multus_external.sriov_cidr[1] | ansible.netcommon.nthhost((32*(loop.index-1)+1)) }}
+    subnet: 27
+    sap: {{16 + loop.index}}/1/4
+    bfd: true
+  - name: llb{{loop.index}}-loopback-ext
+    ip: {{ multus_networks.multus_external.loopback | ansible.netcommon.nthhost(50 +loop.index ) }}
+    subnet: 32
+    sap: loopback
+    bfd: false
+{% endfor %}
+  - name: bgp-loopback-ext
+    ip: {{ multus_networks.multus_external.loopback | ansible.netcommon.nthhost(251 ) }}
+    subnet: 32
+    sap: loopback
+    bfd: false
+  staticRoute:
+  - subnet: 0.0.0.0/0
+    nextHop:
+{% for pf in range (paco_sw.upf.llb.total) %}
+    - {{ multus_networks.multus_external.sriov_cidr[0] | ansible.netcommon.nthhost(32*(loop.index-1)+30) }}
+    - {{ multus_networks.multus_external.sriov_cidr[1] | ansible.netcommon.nthhost(32*(loop.index-1)+30) }}
+{% endfor %}
+    bfd: true
+  - subnet: {{ multus_networks.multus_external.loopback | ansible.netcommon.nthhost(252) }}/32
+    nextHop:
+{% for pf in range (paco_sw.upf.llb.total) %}
+    - {{ multus_networks.multus_external.sriov_cidr[0] | ansible.netcommon.nthhost(32*(loop.index-1)+30) }}
+{% endfor %}
+    bfd: true
+  - subnet: {{ multus_networks.multus_external.loopback | ansible.netcommon.nthhost(253) }}/32
+    nextHop:
+{% for pf in range (paco_sw.upf.llb.total) %}
+    - {{ multus_networks.multus_external.sriov_cidr[1] | ansible.netcommon.nthhost(32*(loop.index-1)+30) }}
+{% endfor %}
+    bfd: true
+  bgp:
+  - peerIp: {{ multus_networks.multus_external.loopback | ansible.netcommon.nthhost(252) }}
+    export: s1u_n3_export
+    peerAs: 110010
+    localAddress: {{ multus_networks.multus_external.loopback | ansible.netcommon.nthhost(251) }}
+    multiHop: 10
+  - peerIp: {{ multus_networks.multus_external.loopback | ansible.netcommon.nthhost(253) }}
+    export: s1u_n3_export
+    peerAs: 110010
+    localAddress: {{ multus_networks.multus_external.loopback | ansible.netcommon.nthhost(251 ) }}
+#VPRN LLB N6
+- id: 17003
+  ecmp: 8
+  vrfImport: import-vprn17003
+  as: 1000
+  interface:
+{% for pf in range (paco_sw.upf.llb.total) %}
+  - name: llb{{loop.index}}-bond0-tor1-n6
+    ip: {{ multus_networks.multus_internet.sriov_cidr[0] | ansible.netcommon.nthhost(32*(loop.index-1)+1) }}
+    subnet: 27
+    sap: {{16 + loop.index}}/1/5
+    bfd: true
+  - name: llb{{loop.index}}-bond0-tor2-n6
+    ip: {{ multus_networks.multus_internet.sriov_cidr[1] | ansible.netcommon.nthhost((32*(loop.index-1)+1)) }}
+    subnet: 27
+    sap: {{16 + loop.index}}/1/6
+    bfd: true
+  - name: llb{{loop.index}}-loopback-n6
+    ip: {{ multus_networks.multus_internet.loopback | ansible.netcommon.nthhost(50 +loop.index ) }}
+    subnet: 32
+    sap: loopback
+    bfd: false
+{% endfor %}
+  - name: bgp-loopback-n6
+    ip: ip: {{ multus_networks.multus_internet.loopback | ansible.netcommon.nthhost(251 ) }}
+    subnet: 32
+    sap: loopback
+    bfd: false
+  staticRoute:
+  - subnet: 0.0.0.0/0
+    nextHop:
+{% for pf in range (paco_sw.upf.llb.total) %}
+    - {{ multus_networks.multus_internet.sriov_cidr[0] | ansible.netcommon.nthhost(32*(loop.index-1)+30) }}
+    - {{ multus_networks.multus_internet.sriov_cidr[1] | ansible.netcommon.nthhost(32*(loop.index-1)+30) }}
+{% endfor %}
+    bfd: true
+  - subnet: {{ multus_networks.multus_internet.loopback | ansible.netcommon.nthhost(252)}}/32
+    nextHop:
+{% for pf in range (paco_sw.upf.llb.total) %}
+    - {{ multus_networks.multus_internet.sriov_cidr[0] | ansible.netcommon.nthhost(32*(loop.index-1)+30) }}
+{% endfor %}
+    bfd: true
+  - subnet: {{ multus_networks.multus_internet.loopback | ansible.netcommon.nthhost(253) }}/32
+    nextHop:
+{% for pf in range (paco_sw.upf.llb.total) %}
+    - {{ multus_networks.multus_internet.sriov_cidr[1] | ansible.netcommon.nthhost(32*(loop.index-1)+30) }}
+{% endfor %}
+    bfd: true
+  bgp:
+  - peerIp: {{ multus_networks.multus_internet.loopback | ansible.netcommon.nthhost(252)}}
+    export: n6_export
+    peerAs: 110010
+    localAddress: {{ multus_networks.multus_internet.loopback | ansible.netcommon.nthhost(251)}}
+    multiHop: 10
+  - peerIp: {{ multus_networks.multus_internet.loopback | ansible.netcommon.nthhost(253)}}
+    export: n6_export
+    peerAs: 110010
+    localAddress: {{ multus_networks.multus_internet.loopback | ansible.netcommon.nthhost(251)}}
+####### LMG
+#VPRN LMG Group 1 Internal
+- id: 1011
+  mgGroup: 1
+  ecmp: 8
+  as: 1000
+  interface:
+{% for pf in range (paco_sw.upf.llb.total) %}
+  - name: lmg{{loop.index}}-bond1-tor1-int
+    ip: {{ multus_networks.multus_internal.sriov_cidr[0] | ansible.netcommon.nthhost(32*(loop.index-1)+11) }}
+    subnet: 27
+    sap: {{loop.index}}/2/1
+    bfd: true
+  - name: llb{{loop.index}}-bond1-tor2-int
+    ip: {{ multus_networks.multus_internal.sriov_cidr[1] | ansible.netcommon.nthhost((32*(loop.index-1)+11)) }}
+    subnet: 27
+    sap: {{loop.index}}/2/2
+    bfd: true
+  - name: lmglmg{{loop.index}}-loopback-int
+    ip: {{ multus_networks.multus_internal.loopback | ansible.netcommon.nthhost(60 +loop.index ) }}
+    subnet: 32
+    sap: loopback
+    bfd: false
+{% endfor %}
+  - name: lmg2-loopback-int
+    ip: {{ multus_networks.multus_internal.loopback | ansible.netcommon.nthhost(62)}}
+    subnet: 32
+    sap: loopback
+    bfd: false
+  staticRoute:
+  - subnet: 0.0.0.0/0
+    nextHop:
+{% for pf in range (paco_sw.upf.llb.total) %}
+    - {{ multus_networks.multus_internal.sriov_cidr[0] | ansible.netcommon.nthhost(32*(loop.index-1)+30) }}
+    - {{ multus_networks.multus_internal.sriov_cidr[1] | ansible.netcommon.nthhost(32*(loop.index-1)+30) }}
+{% endfor %}
+    bfd: true
+#VPRN LMG Group 1 External
+- id: 1012
+  mgGroup: 1
+  ecmp: 8s
+  as: 1000
+  vrfExport: export-vprn1012
+  interface:
+  - name: LMG_group1-loopback-S1u
+    ip: {{ multus_networks.multus_external.loopback | ansible.netcommon.nthhost(1)}}
+    subnet: 32
+    sap: loopback
+    bfd: true
+{% for pf in range (paco_sw.upf.llb.total) %}
+  - name: lmg{{loop.index}}-bond1-tor1-ext
+    ip: {{ multus_networks.multus_external.sriov_cidr[0] | ansible.netcommon.nthhost(32*(loop.index-1)+11) }}
+    subnet: 27
+    sap: {{loop.index}}/2/3
+    bfd: true
+  - name: llb{{loop.index}}-bond1-tor2-ext
+    ip: {{ multus_networks.multus_external.sriov_cidr[1] | ansible.netcommon.nthhost((32*(loop.index-1)+11)) }}
+    subnet: 27
+    sap: {{loop.index}}/2/4
+    bfd: true
+  - name: lmglmg{{loop.index}}-loopback-ext
+    ip: {{ multus_networks.multus_external.loopback | ansible.netcommon.nthhost(60 +loop.index ) }}
+    subnet: 32
+    sap: loopback
+    bfd: false
+{% endfor %}
+  - name: group1-s1u-n3
+    ip: {{ multus_networks.multus_external.loopback | ansible.netcommon.nthhost(1)}}
+    subnet: 32
+    sap: loopback
+    bfd: false
+  staticRoute:
+  - subnet: 0.0.0.0/0
+    nextHop:
+{% for pf in range (paco_sw.upf.llb.total) %}
+    - {{ multus_networks.multus_external.sriov_cidr[0] | ansible.netcommon.nthhost(32*(loop.index-1)+30) }}
+    - {{ multus_networks.multus_external.sriov_cidr[1] | ansible.netcommon.nthhost(32*(loop.index-1)+30) }}
+{% endfor %}
+    bfd: true
+#VPRN LMG Group 1 N6
+- id: 1013
+  mgGroup: 1
+  ecmp: 8
+  vrfExport: export-vprn1013
+  as: 1000
+  ipLocalPool:
+  - name: pool1
+    ipv4Prefix: {{ multus_networks.multus_internet.ue_pool_cidr | ansible.netcommon.ipaddr('net') }}
+  interface:
+{% for pf in range (paco_sw.upf.llb.total) %}
+  - name: lmg{{loop.index}}-bond1-tor1-ext
+    ip: {{ multus_networks.multus_internet.sriov_cidr[0] | ansible.netcommon.nthhost(32*(loop.index-1)+11) }}
+    subnet: 27
+    sap: {{loop.index}}/2/5
+    bfd: true
+  - name: llb{{loop.index}}-bond1-tor2-ext
+    ip: {{ multus_networks.multus_internet.sriov_cidr[1] | ansible.netcommon.nthhost((32*(loop.index-1)+11)) }}
+    subnet: 27
+    sap: {{loop.index}}/2/6
+    bfd: true
+  - name: lmglmg{{loop.index}}-loopback-ext
+    ip: {{ multus_networks.multus_internet.loopback | ansible.netcommon.nthhost(60 +loop.index ) }}
+    subnet: 32
+    sap: loopback
+    bfd: false
+{% endfor %}
+  - name: group1-n6
+    ip: {{ multus_networks.multus_external.loopback | ansible.netcommon.nthhost(62)}}
+    subnet: 32
+    sap: loopback
+    bfd: false
+  staticRoute:
+  - subnet: 0.0.0.0/0
+    nextHop:
+{% for pf in range (paco_sw.upf.llb.total) %}
+    - {{ multus_networks.multus_internet.sriov_cidr[0] | ansible.netcommon.nthhost(32*(loop.index-1)+30) }}
+    - {{ multus_networks.multus_internet.sriov_cidr[1] | ansible.netcommon.nthhost(32*(loop.index-1)+30) }}
+{% endfor %}
+    bfd: true

@@ -1,11 +1,9 @@
 ---
-#- name: Copy over kernel config file
-#    become: false
-#    run_once: true
-#    copy:
-#      src: kubelet-config-1.18.yaml
-#      dest: ../build/kubelet-config-1.18.yaml
-#    delegate_to: localhost
+- name: Copy /etc/sysctl.d/10-k8s-worker-tweaks
+    become: true
+    copy:
+      src: 10-k8s-worker-tweaks
+      dest: /etc/sysctl.d/
   
 #  - name: apply kubelet configuration to the cluster
 #    become: false

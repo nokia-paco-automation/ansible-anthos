@@ -13,13 +13,13 @@
   debug:
     msg: "{{ net_mod }}"
 
-- name: Run module specific installation
-  include: "{{ item }}.yaml"
-  with_items: "{{ net_mod|lower }}"
+    #- name: Run module specific installation
+    #include: "{{ item }}.yaml"
+    #with_items: "{{ net_mod|lower }}"
 
-- name: Enable SRIOV VFs
-  shell: "echo {{ num_sriov_vfs }} > /sys/class/net/{{item}}/device/sriov_numvfs"
-  with_items: "{{hostvars[inventory_hostname].eth_name}}"
+    #- name: Enable SRIOV VFs
+    # shell: "echo {{ num_sriov_vfs }} > /sys/class/net/{{item}}/device/sriov_numvfs"
+    #with_items: "{{hostvars[inventory_hostname].eth_name}}"
 
 - name: Install DPDK
   include: "dpdk.yaml"

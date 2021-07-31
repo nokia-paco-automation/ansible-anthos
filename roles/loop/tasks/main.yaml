@@ -1,0 +1,25 @@
+---
+- name: set fact 1
+  set_fact: ipvlan_int="{{ipvlan_int | default([]) + [item.name]}}"
+  when: item.ipvlan
+  with_items:
+    - "{{ interfaces }}"
+
+- name: set fact 2
+  set_fact: ipvlan_vlan="{{ipvlan_vlan | default([]) + [item.value.ipvlan_vlan]}}"
+  when: item.value.ipvlan_vlan is defined
+  with_dict:
+    - "{{ multus_networks }}"
+
+#- name: Tripple loop test
+#  ansible.builtin.debug:
+#    var: "{{ ipvlan_int }}"
+#  with_items:
+#    - "{{ sriov_int }}"
+
+- name: with_nested
+  debug:
+    msg: "{{ item.0 }}.{{ item.1 }}"
+  with_nested:
+    - "{{ ipvlan_int }}"
+    - "{{ ipvlan_vlan }}"

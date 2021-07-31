@@ -4,7 +4,7 @@ sriov_bool: []
 ipvlan_bool: []
 install_flag: /opt/drv_install
 kernel_flag: /opt/kernel_install
-num_sriov_vfs: 10
+num_sriov_vfs: 64
 
 kernel_pkg:
 - git
