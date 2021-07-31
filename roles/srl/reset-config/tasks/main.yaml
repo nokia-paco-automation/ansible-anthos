@@ -1,0 +1,5 @@
+---
+- name: Reset SRL switch to mgmt config only (~/basic_srl1.json)
+  ansible.builtin.command:
+    argv:
+      - sr_cli -e load file basic.json auto-commit
