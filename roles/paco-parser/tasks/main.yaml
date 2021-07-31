@@ -1,0 +1,25 @@
+---
+- name: install golang
+  include_role:
+    name: gantsign.golang
+- name: clone latest paco-parser
+  ansible.builtin.git:
+    repo: https://github.com/nokia-paco-automation/paco-parser.git
+    dest: /tmp/paco-parser
+    single_branch: yes
+    version: templating-test
+- name: copy input to paco parser
+  ansible.builtin.copy:
+    src: "{{ CWD }}/input.yaml"
+    dest: /tmp/paco-parser/conf/
+- name: run paco-parser
+  ansible.builtin.command: 
+    argv:
+      - /usr/bin/make_database.sh
+      - Username with whitespace
+      - dbname with whitespace
+- name: copy output to build folder
+  ansible.builtin.copy:
+    src: /tmp/paco-parser/out
+    dest: "{{ CWD }}/build/paco-parser"
+s
