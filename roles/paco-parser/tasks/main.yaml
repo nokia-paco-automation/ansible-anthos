@@ -8,18 +8,7 @@
     dest: /tmp/paco-parser
     single_branch: yes
     version: templating-test
-- name: copy input to paco parser
-  ansible.builtin.copy:
-    src: "{{ CWD }}/input.yaml"
-    dest: /tmp/paco-parser/conf/
 - name: run paco-parser
   ansible.builtin.command: 
     argv:
-      - /usr/bin/make_database.sh
-      - Username with whitespace
-      - dbname with whitespace
-- name: copy output to build folder
-  ansible.builtin.copy:
-    src: /tmp/paco-parser/out
-    dest: "{{ CWD }}/build/paco-parser"
-s
+      - go run /tmp/paco-parser/*.go -c {{ CWD }}/input.yaml -o {{ CWD }}/build/paco-parser parse
