@@ -6,9 +6,8 @@
   ansible.builtin.git:
     repo: https://github.com/nokia-paco-automation/paco-parser.git
     dest: /tmp/paco-parser
-    single_branch: yes
     version: templating-test
 - name: run paco-parser
-  ansible.builtin.command: 
-    argv:
-      - go run /tmp/paco-parser/*.go -c {{ CWD }}/input.yaml -o {{ CWD }}/build/paco-parser parse
+  ansible.builtin.shell:
+    cmd: ./paco-parser -c {{ playbook_dir }}/../input.yaml -o {{ playbook_dir }}/../build/paco-parser parse
+    chdir: /tmp/paco-parser
