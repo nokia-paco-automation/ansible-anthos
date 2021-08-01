@@ -1,8 +1,8 @@
 ---
 - name: copy config to leaf
   ansible.builtin.copy:
-    src: "build/paco-parser/{{ inventory_hostname }}.json"
-    dest: /home/admin/
+    src: "build/paco-parser/switch-full/{{ inventory_hostname }}.json"
+    dest: /home/linuxadmin/
     remote_src: yes
 - name: apply config to srl switch 
   ansible.builtin.shell: sr_cli -e load file {{ inventory_hostname }}.json auto-commit
