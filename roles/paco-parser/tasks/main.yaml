@@ -1,4 +1,6 @@
 ---
+- name: Install ansible go role
+  ansible.builtin.shell: ansible-galaxy role install gantsign.golang
 - name: install golang
   include_role:
     name: gantsign.golang
