@@ -7,6 +7,10 @@
     repo: https://github.com/nokia-paco-automation/paco-parser.git
     dest: /tmp/paco-parser
     version: templating-test
+- name: build paco-parser
+  ansible.builtin.shell:
+    cmd: go build
+    chdir: /tmp/paco-parser
 - name: run paco-parser
   ansible.builtin.shell:
     cmd: ./paco-parser -c {{ playbook_dir }}/../input.yaml -o {{ playbook_dir }}/../build/paco-parser parse

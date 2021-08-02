@@ -1,5 +1,4 @@
 - hosts: localhost
-  become: true
   environment:
     http_proxy: "{{proxy.http_proxy}}"
     https_proxy: "{{proxy.https_proxy}}"
