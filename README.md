@@ -18,6 +18,8 @@ ansible-galaxy collection install ansible.netcommon
 
 ## create an inventory file for the deployment
 
+The inventory file needs to be created based on the example shown in the paco-parser git repo.
+
 An example inventory file is shown below:
 
 ```yaml
@@ -248,24 +250,34 @@ The inventory file consists of 2 main sections, one section for the variables fo
 
 ## automation steps
 
-0. Install server + switches + cable according to the design principles
-1. Install the servers + os + basic packages -> to be automated
-2. Configure the switches -> to be automated
-3. Create a google project n gcp and create a service account
-4. Install gcloud + login to gcloud
+0. Install servers + switches + cable according to the design principles
+1. Populate the input file
+2. Generate the switch config files
+```
+ansible-playbook playbooks/parse-input.yaml
+
+```
+3. Apply switch config
+```
+ansible-playbook playbooks/apply-config.yaml
+
+```
+4. Install the servers + os + basic packages -> to be automated
+5. Create a google project n gcp and create a service account
+6. Install gcloud + login to gcloud
 
 ```
 ansible-playbook playbooks/install-gcloud.yaml
 login to gcloud with gcloud init
 ```
 
-5. Install Anthos baremetal
+7. Install Anthos baremetal
 
 ```
 ansible-playbook playbooks/install-anthosbm.yaml
 ```
 
-6. prepare telco paco deployment
+8. prepare telco paco deployment
 
 ```
 ansible-playbook playbooks/prepare-telco-paco.yaml
@@ -274,8 +286,8 @@ ansible-playbook playbooks/prepare-telco-paco.yaml
 Once all of this is successfull you can install the packet core applications.
 
 ```
-helm install upf paco-harbor/upf -n upf -f ~/ansible-anthos/build/values_upf.yaml 
-helm install smf paco-harbor/smf -n smf -f ~/ansible-anthos/build/values_smf.yaml
-helm install amf-cluster paco-harbor/CMM-k8s --version 21.0.0-v8.6.1 -f ~/ansible-anthos/build/values_amf.yaml -n amf
+helm install upf paco-harbor/upf -n upf -f ~/ansible-anthos/build/paco-parser/app-values/values_upf.yaml 
+helm install smf paco-harbor/smf -n smf -f ~/ansible-anthos/build/paco-parser/app-values/values_smf.yaml
+helm install amf-cluster paco-harbor/CMM-k8s --version 21.0.0-v8.6.1 -f ~/ansible-anthos/build/paco-parser/app-values/values_amf.yaml -n amf
 
 ```
