@@ -3,3 +3,4 @@ support/*
 build/*
 inventory/nokia.yaml
 roles/gantsign.golang
+input.yaml
