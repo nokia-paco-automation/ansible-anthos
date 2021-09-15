@@ -128,6 +128,7 @@
       tags: [cluster, add_multus_cnis]
     - role: install_pkg
       tags: [cluster, install_pkg]
+      # uncomment if you want the playbook to add the vlans for ipvlan
       #- role: setup_vlans
       #when: "create_vlans|default(false) and ('cluster' or 'setup_vlans' or 'all' in ansible_run_tags)"
       #tags: [cluster, setup_vlans]
