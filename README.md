@@ -19,14 +19,14 @@ ansible-galaxy collection install ansible.netcommon
 ## Usage
 
 ### 1. Physically install servers, SRL switches and cables according to the HLD.
-### 2. Setup the out of band conenctivity for the servers and SRL switches(+ save rescue config).
+### 2. Setup the out of band connectivity for the servers and SRL switches(+ save rescue config).
 ### 3. Install a jumphost VM and connect it to the out of band network.
 ### 4. Clone the ansible-anthos repo to the jumphost vm and install its prerequisites
 ### 5. Create an input.yaml file for the deployment with the relevant deployment information in the root dir
 
 The inventory file needs to be created based on the config example shown in the [paco-parser repo](https://github.com/nokia-paco-automation/paco-parser/blob/master/conf/paco-deployment-telenet-multinet.yaml).
 
-### 6. Parse the input.yam file
+### 6. Parse the input.yaml file
 
 ```
 ansible-playbook playbooks/parse-input.yaml
@@ -35,10 +35,10 @@ ansible-playbook playbooks/parse-input.yaml
 ### 7. Apply the config to the SRL leafs
 
 ```
-ansible-playbook playbooks/parse-input.yaml
+ansible-playbook playbooks/configure-leafs.yaml
 ```
 
-### 7. Deploy the Os on the servers and configure the bonds to the SRL leafs
+### 7. Deploy the OS on the servers and configure the bonds to the SRL leafs and apply Anthos prereq (TODO link)
 
 ### 8. Install Google Anthos
 ```
@@ -46,6 +46,7 @@ ansible-playbook playbooks/install-gcloud.yaml
 gcloud init
 ansible-playbook playbooks/install-anthosbm.yaml
 ```
+(Will install anthos in hybrid mode)
 ### 9. Install Google Anthos Telco Extensions
 ```
 ansible-playbook playbooks/prepare-telco-paco.yaml
