@@ -1,0 +1,2 @@
+- name: Install gcloud sdk per distribution
+  include: "{{ ansible_os_family|lower }}.yaml"

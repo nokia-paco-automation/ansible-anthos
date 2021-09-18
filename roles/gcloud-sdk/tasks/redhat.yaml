@@ -1,0 +1,14 @@
+- name: Create google sdk repo file (/etc/yum.repos.d/google-cloud-sdk.repo)
+  become: true
+  template: 
+    src: "google-cloud-sdk.repo.j2"
+    dest: "/etc/yum.repos.d/google-cloud-sdk.repo"
+
+- name: Install the latest version of Google Cloud SDK
+  dnf:
+    name: google-cloud-sdk
+    state: latest
+
+- name: debug message
+  debug:
+    msg: "login to the gcloud with 'gcloud init'"
