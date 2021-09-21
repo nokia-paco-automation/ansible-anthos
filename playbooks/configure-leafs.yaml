@@ -4,4 +4,5 @@
     https_proxy: "{{proxy.https_proxy}}"
     no_proxy: "{{proxy.no_proxy}}"
   roles:
+    - { role: srl/reset-config, tags: reset-config}
     - { role: srl/apply-config, tags: apply-config}
