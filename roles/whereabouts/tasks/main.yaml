@@ -5,6 +5,6 @@
     dest: ../build/whereabouts
     
 - name: install wherabouts
-  shell: kubectl apply -f ../build/whereabouts/doc/daemonset-install.yaml -f ../build/whereabouts/doc/whereabouts.cni.cncf.io_ippools.yaml
+  shell: kubectl apply -f ../build/whereabouts/doc/crds/daemonset-install.yaml -f ../build/whereabouts/doc/crds/whereabouts.cni.cncf.io_ippools.yaml -f ../build/whereabouts/doc/crds/whereabouts.cni.cncf.io_overlappingrangeipreservations.yaml
   register: response
   failed_when: "response.rc != 0 and 'already exist' not in response.stderr"

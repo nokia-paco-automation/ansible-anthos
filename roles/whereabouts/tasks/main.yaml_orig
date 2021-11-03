@@ -1,0 +1,10 @@
+---    
+- name: download whereabouts git repo
+  git:
+    repo: "https://github.com/dougbtv/whereabouts"
+    dest: ../build/whereabouts
+    
+- name: install wherabouts
+  shell: kubectl apply -f ../build/whereabouts/doc/daemonset-install.yaml -f ../build/whereabouts/doc/whereabouts.cni.cncf.io_ippools.yaml
+  register: response
+  failed_when: "response.rc != 0 and 'already exist' not in response.stderr"
