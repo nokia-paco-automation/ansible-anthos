@@ -3,11 +3,11 @@
 # create the initial admin/hybrid cluster. Afterwards, when creating user clusters by directly
 # applying the cluster and node pool resources to the existing cluster, you must remove this
 # section.
-gcrKeyPath: /home/{{ lookup('env', 'USER') }}/{{anthos_dir}}/bmctl-workspace/.sa-keys/{{project_id}}-anthos-baremetal-gcr.json
+gcrKeyPath: bmctl-workspace/.sa-keys/{{project_id}}-anthos-baremetal-gcr.json
 sshPrivateKeyPath: {{ansible_ssh_private_key_file}}
-gkeConnectAgentServiceAccountKeyPath: /home/{{ lookup('env', 'USER') }}/{{anthos_dir}}/bmctl-workspace/.sa-keys/{{project_id}}-anthos-baremetal-connect.json
-gkeConnectRegisterServiceAccountKeyPath: /home/{{ lookup('env', 'USER') }}/{{anthos_dir}}/bmctl-workspace/.sa-keys/{{project_id}}-anthos-baremetal-register.json
-cloudOperationsServiceAccountKeyPath: /home/{{ lookup('env', 'USER') }}/{{anthos_dir}}/bmctl-workspace/.sa-keys/{{project_id}}-anthos-baremetal-cloud-ops.json
+gkeConnectAgentServiceAccountKeyPath: bmctl-workspace/.sa-keys/{{project_id}}-anthos-baremetal-connect.json
+gkeConnectRegisterServiceAccountKeyPath: bmctl-workspace/.sa-keys/{{project_id}}-anthos-baremetal-register.json
+cloudOperationsServiceAccountKeyPath: bmctl-workspace/.sa-keys/{{project_id}}-anthos-baremetal-cloud-ops.json
 ---
 apiVersion: v1
 kind: Namespace
@@ -25,7 +25,7 @@ spec:
   #   2) user:   to create a user cluster. Requires an existing admin cluster.
   #   3) hybrid: to create a hybrid cluster that runs admin cluster components and user workloads.
   #   4) standalone: to create a cluster that manages itself, runs user workloads, but does not manage other clusters.
-  type: hybrid
+  type: {{anthos_deployment_type}}
   # Anthos cluster version.
   anthosBareMetalVersion: {{anthos_version}}
   # GKE connect configuration
@@ -37,7 +37,9 @@ spec:
       nodes:
       # Control plane node pools. Typically, this is either a single machine
       # or 3 machines if using a high availability deployment.
-      - address: {{ hostvars['master1']['ansible_host'] }}
+{% for workers in groups['masters'] %}
+      - address: {{ hostvars[masters]['ansible_host'] }}
+{% endfor  %}
   # Cluster networking configuration
   clusterNetwork:
     # Pods specify the IP ranges from which Pod networks are allocated.
@@ -103,7 +105,7 @@ spec:
     # Whether collection of application logs/metrics should be enabled (in addition to
     # collection of system logs/metrics which correspond to system components such as
     # Kubernetes control plane or cluster management agents).
-    # enableApplication: false
+    enableApplication: true
   # Storage configuration
   storage:
     # lvpNodeMounts specifies the config for local PersistentVolumes backed by mounted disks.
@@ -127,6 +129,21 @@ spec:
       storageClassName: local-shared
       # numPVUnderSharedPath specifies the number of subdirectories to create under path.
       numPVUnderSharedPath: 5
+  # NodeConfig specifies the configuration that applies to all nodes in the cluster.
+  nodeConfig:
+    # podDensity specifies the pod density configuration.
+    podDensity:
+      # maxPodsPerNode specifies at most how many pods can be run on a single node.
+      maxPodsPerNode: 250
+    # containerRuntime specifies which container runtime to use for scheduling containers on nodes.
+    # containerd and docker are supported.
+    containerRuntime: containerd
+  # KubeVirt configuration, uncomment this section if you want to install kubevirt to the cluster
+  # kubevirt:
+  #   # if useEmulation is enabled, hardware accelerator (i.e relies on cpu feature like vmx or svm)
+  #   # will not be attempted. QEMU will be used for software emulation.
+  #   # useEmulation must be specified for KubeVirt installation
+  #   useEmulation: false
   # Authentication; uncomment this section if you wish to enable authentication to the cluster with OpenID Connect.
   # authentication:
   #   oidc:
@@ -155,6 +172,9 @@ spec:
   #     # extraParams specifies additional key-value parameters to send to the OpenID provider as a comma-delimited
   #     # list.
   #     extraParams: <Additional key-value parameters to send to OIDC provider as a comma-separated list; optional>
+  #     # proxy specifies the proxy server to use for the cluster to connect to your OIDC provider, if applicable.
+  #     # Example: https://user:password@10.10.10.10:8888. If left blank, this defaults to no proxy.
+  #     proxy: <Proxy server to use for the cluster to connect to your OIDC provider; optional, default is no proxy>
   #     # deployCloudConsoleProxy specifies whether to deploy a reverse proxy in the cluster to allow Google Cloud
   #     # Console access to the on-premises OIDC provider for authenticating users. If your identity provider is not
   #     # reachable over the public internet, and you wish to authenticate using Google Cloud Console, then this field
@@ -168,7 +188,7 @@ spec:
   # Node access configuration; uncomment this section if you wish to use a non-root user
   # with passwordless sudo capability for machine login.
   nodeAccess:
-    loginUser: {{ lookup('env', 'USER') }}
+    loginUser: {{ansible_user}}
 ---
 # Node pools for worker nodes
 apiVersion: baremetal.cluster.gke.io/v1
