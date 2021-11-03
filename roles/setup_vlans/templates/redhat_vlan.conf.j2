@@ -1,7 +1,10 @@
-PHYSDEV={{ eth_name }}
-DEVICE=vlan{{ item }}
-VLAN_NAME_TYPE=VLAN_PLUS_VID_NO_PAD
+VLAN=yes
+TYPE=Vlan
+PHYSDEV={{ item.0 }}
+VLAN_ID={{ item.1 }}
 BOOTPROTO=none
+NAME={{ item.0 }}.{{ item.1 }}
+DEVICE={{ item.0 }}.{{ item.1 }}
 ONBOOT=yes
-VLAN="yes"
-#NM_CONTROLLED=no
+NM_CONTROLLED=no
+#MTU=9000

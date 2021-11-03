@@ -1,10 +1,3 @@
-#- name: Create VLANs config files
-#  template:
-#    src: redhat_vlan.conf.j2
-#    dest: "/etc/sysconfig/network-scripts/ifcfg-vlan{{ item }}"
-#  with_items:
-#  - "{{ vlans }}"
-
 - name: Create ipvlan interface array
   set_fact: ipvlan_int="{{ipvlan_int | default([]) + [item.name]}}"
   when: item.ipvlan
@@ -17,16 +10,26 @@
   with_dict:
     - "{{ multus_networks }}"
 
-- name: Create IPVLAN Interfaces
-  network:
-    network_provider: nm
-    network_connections:
-      - name: "{{ item.0 }}.{{ item.1 }}"
-        autoconnect: yes
-        type: vlan
-        parent: "{{ item.0 }}"
-        vlan:
-          id: "{{ item.1 }}"
-  with_nested:
-    - "{{ ipvlan_int }}"
-    - "{{ ipvlan_vlan }}"
+- name: Create VLANs config files
+  become: true
+  template:
+    src: redhat_vlan.conf.j2
+    dest: "/etc/sysconfig/network-scripts/ifcfg-{{item.0}}.{{ item.1 }}"
+  with_items:
+     - "{{ ipvlan_int }}"
+     - "{{ ipvlan_vlan }}"
+
+
+# - name: Create IPVLAN Interfaces
+#   network:
+#     network_provider: nm
+#     network_connections:
+#       - name: "{{ item.0 }}.{{ item.1 }}"
+#         autoconnect: yes
+#         type: vlan
+#         parent: "{{ item.0 }}"
+#         vlan:
+#           id: "{{ item.1 }}"
+#   with_nested:
+#     - "{{ ipvlan_int }}"
+#     - "{{ ipvlan_vlan }}"
