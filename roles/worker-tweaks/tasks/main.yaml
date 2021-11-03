@@ -92,6 +92,28 @@
 - name: Enable huge pages
   become: true
   shell: grubby --update-kernel=ALL --args="transparent_hugepage=madvise default_hugepagesz=1G hugepagesz=1G hugepages=20"
- 
+
+- name: Add LimitMSGQUEUE to containerd
+  become: true    
+  lineinfile:
+        create: false
+        path: /etc/systemd/system/multi-user.target.wants/containerd.service
+        line: "{{ item }}"
+        insertafter: 'Limit.*'
+  with_items:
+    - "LimitMSGQUEUE=infinity"
+
+- name: Restart containerd
+  become: true
+  systemd: 
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+    name: containerd.service
+
+- name: Disable SELinux for apps
+  become: true
+  selinux: state=disabled
+
 - name: Reboot worker to apply grub
   reboot:
