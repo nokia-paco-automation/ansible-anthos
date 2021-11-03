@@ -1,0 +1,24 @@
+- hosts: localhost
+  environment:
+    http_proxy: "{{proxy.http_proxy}}"
+    https_proxy: "{{proxy.https_proxy}}"
+    no_proxy: "{{proxy.no_proxy}}"
+  pre_tasks:
+    - name: validate sriov file existance
+      stat: 
+        path: ../build/sriovdp_cm.yaml
+      register: stat_result
+      tags: multus
+    - name: validate sriov file existance
+      assert:
+        that:
+          - stat_result.stat.exists
+        msg: Run ansible-playbook playbooks/prepare.yml first
+        quiet: true
+      tags: multus
+  roles:
+    #- { role: k9s, tags: [k8sapps, k9s ]}
+    - { role: helm, tags: [k8sapps, helm] }
+    - { role: nfs, tags: [k8sapps, storage] }
+    #- { role: multus, tags: [k8sapps, multus] }
+    #- { role: whereabouts, tags: [k8sapps, whereabouts] }

@@ -4,4 +4,5 @@
     https_proxy: "{{proxy.https_proxy}}"
     no_proxy: "{{proxy.no_proxy}}"
   roles:
+    - { role: build, tags: always }
     - { role: paco-parser, tags: paco-parser}
