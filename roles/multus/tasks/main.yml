@@ -3,6 +3,7 @@
     git:
       repo: "https://github.com/intel/multus-cni.git"
       dest: ../build/multus-cni
+      version: "v3.8"
       
   - name: install multus
     shell: kubectl apply -f ../build/multus-cni/images/multus-daemonset.yml
@@ -16,6 +17,7 @@
     git:
       repo: "https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin"
       dest: ../build/sriov-network-device-plugin
+      version: "v3.3.2"
 
   - name: install sriov multus daemonset
     shell: kubectl apply -f ../build/sriov-network-device-plugin/deployments/k8s-v1.16/sriovdp-daemonset.yaml
