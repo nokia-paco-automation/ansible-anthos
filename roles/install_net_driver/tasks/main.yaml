@@ -1,5 +1,5 @@
-- name: Install SRIOV packages
-  action: "{{ ansible_pkg_mgr }} name={{ sriov_pkg }} state=latest update_cache=true"
+#- name: Install SRIOV packages
+#  action: "{{ ansible_pkg_mgr }} name={{ sriov_pkg }} state=latest update_cache=true"
 
 # - name: Get SRIOV file path
 #   shell: "find /sys/devices -name sriov_numvfs | grep {{ item }}/sriov_numvfs"

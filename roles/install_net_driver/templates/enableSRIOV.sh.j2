@@ -1,0 +1,15 @@
+#!/bin/bash
+
+##sriov interfaces
+#sriov_int=("eno5" "eno6" "ens2f0" "ens2f1")
+sriov_int=({{ sriov_int|join(' ') }})
+## number of VF's
+for int in "${sriov_int[@]}"
+do
+  number_vf=`cat /sys/class/net/$int/device/sriov_totalvfs`
+  /usr/bin/echo $number_vf > /sys/class/net/$int/device/sriov_numvfs
+  for (( i=0; i<=$number_vf-1; i++ ))
+  do
+    ip link set $int vf $i trust on
+  done 
+done

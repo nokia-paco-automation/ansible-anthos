@@ -1,30 +1,16 @@
-- name: Check if it's using ifupdown
-  stat:
-    path: /run/network/ifstate
-  register: ifstate
-
-# - name: Set SRIOV VFs if using ifupdown
-#   lineinfile:
-#     path: /etc/network/interfaces
-#     insertafter: "^iface {{ eth_name }} inet *$"
-#     regex: "    pre-up echo {{ num_sriov_vfs  }} > {{ sriov_path.stdout }}"
-#     line: "    pre-up echo {{ num_sriov_vfs  }} > {{ sriov_path.stdout }}"
-#   when: "ifstate.stat.exists"
-#   with_items: "{{hostvars[inventory_hostname].eth_name}}"
-
 - name: Set SRIOV VFs if using netplan
   copy:
     dest: "/etc/networkd-dispatcher/carrier.d/10-sriov-vf"
     mode: "0744"
     content: |
       #!/bin/sh
-  #when: "not ifstate.stat.exists"
+
 
 - name: Set SRIOV if using netplan
   lineinfile:
     path: "/etc/networkd-dispatcher/carrier.d/10-sriov-vf"
     line: echo '{{ num_sriov_vfs }}' > "/sys/class/net/{{item}}/device/sriov_numvfs"
     state: present
-  #when: "not ifstate.stat.exists"
+
   with_items: "{{hostvars[inventory_hostname].eth_name}}"
       
