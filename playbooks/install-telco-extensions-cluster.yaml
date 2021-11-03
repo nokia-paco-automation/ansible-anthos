@@ -6,7 +6,7 @@
   pre_tasks:
     - name: validate sriov file existance
       stat: 
-        path: ../build/sriovdp_cm.yaml
+        path: ../build/paco-parser/out/server/sriovdp_cm.yaml
       register: stat_result
       tags: multus
     - name: validate sriov file existance
@@ -19,6 +19,7 @@
   roles:
     #- { role: k9s, tags: [k8sapps, k9s ]}
     - { role: helm, tags: [k8sapps, helm] }
-    - { role: nfs, tags: [k8sapps, storage] }
+    #- { role: nfs, tags: [k8sapps, storage] }
     #- { role: multus, tags: [k8sapps, multus] }
-    #- { role: whereabouts, tags: [k8sapps, whereabouts] }
+    - { role: sriovdp_cm, tags: [k8sapps, sriov] }
+    - { role: whereabouts, tags: [k8sapps, whereabouts] }
