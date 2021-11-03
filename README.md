@@ -49,10 +49,12 @@ ansible-playbook playbooks/install-anthosbm.yaml
 (Will install anthos in hybrid mode)
 ### 9. Install Google Anthos Telco Extensions
 ```
-ansible-playbook playbooks/prepare-telco-paco.yaml
+ansible-playbook playbooks/install-telco-extensions-cluster.yaml
+ansible-playbook playbooks/install-telco-extensions-workers.yaml
 ```
 ### 10. Deploy the Nokia Packet Core Apps
 ```
+ansible-playbook playbooks/prepare-paco.yaml
 helm install upf paco-harbor/upf -n upf -f ~/ansible-anthos/build/paco-parser/app-values/values_upf.yaml 
 helm install smf paco-harbor/smf -n smf -f ~/ansible-anthos/build/paco-parser/app-values/values_smf.yaml
 helm install amf-cluster paco-harbor/CMM-k8s --version 21.0.0-v8.6.1 -f ~/ansible-anthos/build/paco-parser/app-values/values_amf.yaml -n amf
