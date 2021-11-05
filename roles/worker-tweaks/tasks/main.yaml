@@ -91,7 +91,7 @@
 
 - name: Enable huge pages
   become: true
-  shell: grubby --update-kernel=ALL --args="transparent_hugepage=madvise default_hugepagesz=1G hugepagesz=1G hugepages=20"
+  shell: grubby --update-kernel=ALL --args="transparent_hugepage=madvise default_hugepagesz=1G hugepagesz=1G hugepages=20 intel_iommu=on"
 
 - name: Add LimitMSGQUEUE to containerd
   become: true    
