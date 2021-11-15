@@ -6,3 +6,4 @@
   roles:
     - { role: build, tags: always }
     - { role: paco-parser, tags: paco-parser}
+    - { role: vec-sanitiser, tags: vec-sanitiser}
