@@ -1,0 +1,13 @@
+---
+- name: clone latest paco-config-filter
+  ansible.builtin.git:
+    repo: https://github.com/nokia-paco-automation/PacoConfigFilter.git
+    dest: /tmp/paco-config-filter
+    version: master
+- name: run paco-config-filter
+  ansible.builtin.shell:
+    cmd: python3 config_filter.py -i {{ playbook_dir }}/../build/paco-parser/switch-full/{{ item }}.json -o {{ playbook_dir }}/../build/paco-parser/switch-full/{{ item }}_underlay_only.json
+    chdir: /tmp/paco-config-filter/nokia/paco/
+  with_items:
+    - "leaf1"
+    - "leaf2"
