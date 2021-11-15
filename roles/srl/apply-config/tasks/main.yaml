@@ -1,7 +1,17 @@
 ---
 - name: copy config to leaf
   ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../build/paco-parser/switch-full/{{ inventory_hostname }}_underlay_only.json"
+    dest: /home/linuxadmin
+  when: use_vec
+- name: apply config to srl switch 
+  ansible.builtin.shell: sr_cli -e load file {{ inventory_hostname }}_underlay_only.json merge auto-commit
+  when: use_vec
+- name: copy config to leaf
+  ansible.builtin.copy:
     src: "{{ playbook_dir }}/../build/paco-parser/switch-full/{{ inventory_hostname }}.json"
     dest: /home/linuxadmin
+  when: not use_vec
 - name: apply config to srl switch 
   ansible.builtin.shell: sr_cli -e load file {{ inventory_hostname }}.json merge auto-commit
+  when: not use_vec
